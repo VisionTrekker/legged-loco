@@ -38,7 +38,7 @@ class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
     max_iterations = 5000
     save_interval = 50
-    experiment_name = "aliengo_base_flat"
+    experiment_name = "aliengo_base"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
@@ -64,6 +64,7 @@ class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
 
 UNITREE_ALIENGO_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
+        # usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Robots/Unitree/Aliengo/aliengo.usd",
         usd_path=f"{os.getenv('USER_PATH_TO_USD')}/robots/aliengo/aliengo.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
@@ -109,7 +110,7 @@ UNITREE_ALIENGO_CFG = ArticulationCfg(
 ##
 # Configuration for custom terrains.
 ##
-AlienGo_BASE_TERRAINS_CFG = TerrainGeneratorCfg(
+ALIENGO_BASE_TERRAINS_CFG = TerrainGeneratorCfg(
     size=(8.0, 8.0),
     border_width=20.0,
     num_rows=10,
@@ -146,10 +147,10 @@ AlienGo_BASE_TERRAINS_CFG = TerrainGeneratorCfg(
         #     proportion=0.1, gap_width_range=(0.5, 1.0), platform_width=2.0
         # ),
         # "hf_pyramid_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
-        #     proportion=0.2, slope_range=(0.0, 0.02), platform_width=2.0, border_width=0.25
+        #     proportion=0.1, slope_range=(0.0, 0.02), platform_width=2.0, border_width=0.25
         # ),
         # "hf_pyramid_slope_inv": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
-        #     proportion=0.2, slope_range=(0.0, 0.4), platform_width=2.0, border_width=0.25 ),
+        #     proportion=0.1, slope_range=(0.0, 0.2), platform_width=2.0, border_width=0.25 ),
     },
 )
 
@@ -165,8 +166,8 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
     terrain = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="generator",
-        terrain_generator=AlienGo_BASE_TERRAINS_CFG,
-        max_init_terrain_level=3,
+        terrain_generator=ALIENGO_BASE_TERRAINS_CFG,
+        max_init_terrain_level=2,
         collision_group=-1,
         physics_material=sim_utils.RigidBodyMaterialCfg(
             friction_combine_mode="multiply",
@@ -183,19 +184,18 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
     )
 
     # robots
-    robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Aliengo")
-
+    robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # sensors
     height_scanner = RayCasterCfg(
-        prim_path="{ENV_REGEX_NS}/Aliengo/trunk",
+        prim_path="{ENV_REGEX_NS}/Robot/trunk",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Aliengo/.*(foot|calf|thigh|hip|trunk)", history_length=3, track_air_time=True)
+    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*(foot|calf|thigh|hip|trunk)", history_length=3, track_air_time=True)
 
     # lights
     sky_light = AssetBaseCfg(
@@ -441,8 +441,8 @@ class AlienGoBaseRoughEnvCfg(ManagerBasedRLEnvCfg):
 
         # scale down the terrains because the robot is small
         # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.04)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.04)
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
 
         # reduce action scale
         self.actions.joint_pos.scale = 0.5
@@ -468,33 +468,28 @@ class AlienGoBaseRoughEnvCfg(ManagerBasedRLEnvCfg):
 
         # rewards
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
-        # self.rewards.feet_air_time.weight = 0.01
+        self.rewards.feet_air_time.weight = 0.25
         self.rewards.undesired_contacts = None
         self.rewards.dof_torques_l2.weight = -0.0002
         self.rewards.track_lin_vel_xy_exp.weight = 1.5
         self.rewards.track_ang_vel_z_exp.weight = 1.5
-        self.rewards.dof_acc_l2.weight = -4e-7
+        self.rewards.dof_acc_l2.weight = -2.5e-7
         # self.rewards.dof_pos_limits.weight = -0.0001
+        self.rewards.flat_orientation_l2.weight = -2.5
+        self.rewards.action_rate_l2.weight = -0.02
 
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
-        self.commands.base_velocity.rel_standing_envs = 0.1
+        # self.commands.base_velocity.rel_standing_envs = 0.1
 
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
+
         self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
         # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
         # this generates terrains with increasing difficulty and is useful for training
-
-        # flat terrain
-        # self.scene.terrain.terrain_type = "plane"
-        # self.scene.terrain.terrain_generator = None
-        # self.curriculum.terrain_levels = None
-        self.rewards.flat_orientation_l2.weight = -2.5
-        self.rewards.action_rate_l2.weight = -0.06
-        self.rewards.feet_air_time.weight = 0.2
 
         # update sensor period
         self.scene.contact_forces.update_period = self.sim.dt

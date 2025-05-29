@@ -2,7 +2,8 @@ import platform
 from omni.isaac.lab.utils import configclass
 import omni.isaac.lab.sim as sim_utils
 from omni.isaac.lab.assets import ArticulationCfg, AssetBaseCfg
-from omni.isaac.lab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
+from omni.isaac.lab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg, \
+    TerminationsCfg
 from omni.isaac.lab.managers import ObservationGroupCfg as ObsGroup
 from omni.isaac.lab.managers import ObservationTermCfg as ObsTerm
 from omni.isaac.lab.managers import RewardTermCfg as RewTerm
@@ -29,16 +30,17 @@ from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import (
     RslRlPpoAlgorithmCfg,
 )
 
-from .aliengo_low_base_cfg import AlienGoBaseRoughEnvCfg, UNITREE_ALIENGO_CFG
-
 
 @configclass
 class AlienGoVisionRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
-    max_iterations = 5000
-    save_interval = 50
-    experiment_name = "aliengo_vision_rough"
+    max_iterations = 15000
+    save_interval = 200
+    experiment_name = "aliengo_vision"
     empirical_normalization = False
+    resume = False
+    load_run = "2025-05-29_13-41-39_test"
+    load_checkpoint = "model_.*.pt"
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
         actor_hidden_dims=[512, 256, 128],
@@ -179,29 +181,29 @@ class AlienGoVisionSceneCfg(InteractiveSceneCfg):
     )
 
     # robots
-    robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Aliengo")
+    robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # sensors
-    height_scanner = RayCasterCfg(
-        prim_path="{ENV_REGEX_NS}/Aliengo/trunk",
-        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
-        attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-        debug_vis=False,
-        mesh_prim_paths=["/World/ground"],
-    )
-    # lidar_sensor = RayCasterCfg(
-    #     prim_path="{ENV_REGEX_NS}/Aliengo/trunk",
-    #     # offset=RayCasterCfg.OffsetCfg(pos=(0.28945, 0.0, -0.046), rot=(0., -0.991,0.0,-0.131)),
-    #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, -0.0), rot=(0., -0.991,0.0,-0.131)),
-    #     attach_yaw_only=False,
-    #     pattern_cfg=patterns.LidarPatternCfg(
-    #         channels=32, vertical_fov_range=(0.0, 90.0), horizontal_fov_range=(-180, 180.0), horizontal_res=4.0
-    #     ),
+    # height_scanner = RayCasterCfg(
+    #     prim_path="{ENV_REGEX_NS}/Robot/trunk",
+    #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
+    #     attach_yaw_only=True,
+    #     pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
     #     debug_vis=False,
     #     mesh_prim_paths=["/World/ground"],
     # )
-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Aliengo/.*(foot|calf|thigh|hip|trunk)", history_length=3, track_air_time=True)
+    lidar_sensor = RayCasterCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/trunk",
+        # offset=RayCasterCfg.OffsetCfg(pos=(0.28945, 0.0, -0.046), rot=(0., -0.991,0.0,-0.131)),
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.05), rot=(0.0, 0.0, 0.0, 0.0)),
+        attach_yaw_only=False,
+        pattern_cfg=patterns.LidarPatternCfg(
+            channels=32, vertical_fov_range=(-7.0, 52.0), horizontal_fov_range=(-180, 180.0), horizontal_res=1.3
+        ),
+        debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
+    )
+    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*(foot|calf|thigh|hip|trunk)", history_length=3, track_air_time=True)
 
     # lights
     sky_light = AssetBaseCfg(
@@ -223,25 +225,24 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
         weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"])},
     )
-    # feet_stumble = RewTerm(
-    #     func=mdp.feet_stumble,
-    #     weight=-0.02,
-    #     params={
-    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
-    #     },
-    # )
-
+    feet_stumble = RewTerm(
+        func=mdp.feet_stumble,
+        weight=-0.02,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
+        },
+    )
     collision = RewTerm(
         func=mdp.collision_penalty,
         weight=-5.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=[".*_hip", ".*_thigh", ".*_calf"]),
-            "threshold": 0.1,
+            "threshold": 1.0,
         },
     )
 
 @configclass
-class TerminationsCfg:
+class CustomAlienGoTerminationsCfg(TerminationsCfg):
     """Termination terms for the MDP."""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
@@ -249,18 +250,7 @@ class TerminationsCfg:
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["trunk"]), "threshold": 1.0},
     )
-    hip_contact = DoneTerm(
-        func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=[".*_hip"]), "threshold": 1.0},
-    )
-    leg_contact = DoneTerm(
-        func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=[".*_calf"]), "threshold": 1.0},
-    )
-    bad_orientation = DoneTerm(
-        func=mdp.bad_orientation,
-        params={"limit_angle": 1.0},
-    )
+
 
 ##
 # Observations
@@ -287,12 +277,12 @@ class ObservationsCfg:
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
         actions = ObsTerm(func=mdp.last_action)
 
-        # height_scan = ObsTerm(
-        #     func=mdp.height_map_lidar,
-        #     params={"sensor_cfg": SceneEntityCfg("lidar_sensor"), "offset": 0.0},
-        #     clip=(-10.0, 10.0),
-        #     noise=Unoise(n_min=-0.02, n_max=0.02),
-        # )
+        height_scan = ObsTerm(
+            func=mdp.height_map_lidar,
+            params={"sensor_cfg": SceneEntityCfg("lidar_sensor"), "offset": 0.0},
+            clip=(-10.0, 10.0),
+            noise=Unoise(n_min=-0.02, n_max=0.02),
+        )
 
         def __post_init__(self):
             self.enable_corruption = True
@@ -319,35 +309,35 @@ class ObservationsCfg:
         def __post_init__(self):
             self.enable_corruption = True
             self.concatenate_terms = True
-    
-    @configclass
-    class CriticObsCfg(ObsGroup):
-        # observation terms (order preserved)
-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
-        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
-        projected_gravity = ObsTerm(
-            func=mdp.projected_gravity,
-            noise=Unoise(n_min=-0.05, n_max=0.05),
-        )
-        
-        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
-        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
-        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
-        actions = ObsTerm(func=mdp.last_action)
-        height_scan = ObsTerm(
-            func=mdp.height_scan,
-            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
-            clip=(-1.0, 1.0),
-        )
 
-        def __post_init__(self):
-            self.enable_corruption = False
-            self.concatenate_terms = True
+    # @configclass
+    # class CriticObsCfg(ObsGroup):
+    #     # observation terms (order preserved)
+    #     base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
+    #     base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
+    #     projected_gravity = ObsTerm(
+    #         func=mdp.projected_gravity,
+    #         noise=Unoise(n_min=-0.05, n_max=0.05),
+    #     )
+    #
+    #     velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
+    #     joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
+    #     joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
+    #     actions = ObsTerm(func=mdp.last_action)
+    #     height_scan = ObsTerm(
+    #         func=mdp.height_scan,
+    #         params={"sensor_cfg": SceneEntityCfg("height_scanner")},
+    #         clip=(-1.0, 1.0),
+    #     )
+    #
+    #     def __post_init__(self):
+    #         self.enable_corruption = False
+    #         self.concatenate_terms = True
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()
     proprio: ProprioCfg = ProprioCfg()
-    critic: CriticObsCfg = CriticObsCfg()
+    # critic: CriticObsCfg = CriticObsCfg()
 
 
 ##
@@ -436,7 +426,7 @@ class EventCfg:
 
 
 @configclass
-class AlienGoVisionRoughEnvCfg(AlienGoBaseRoughEnvCfg):
+class AlienGoVisionRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
 
     scene: AlienGoVisionSceneCfg = AlienGoVisionSceneCfg(num_envs=4096, env_spacing=2.5)
@@ -445,7 +435,7 @@ class AlienGoVisionRoughEnvCfg(AlienGoBaseRoughEnvCfg):
     commands: CommandsCfg = CommandsCfg()
     # MDP settings
     rewards: RewardsCfg = CustomAlienGoRewardsCfg()
-    terminations: TerminationsCfg = TerminationsCfg()
+    terminations: TerminationsCfg = CustomAlienGoTerminationsCfg()
     events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
 
@@ -473,7 +463,7 @@ class AlienGoVisionRoughEnvCfg(AlienGoBaseRoughEnvCfg):
 
         # event
         self.events.push_robot = None
-        self.events.add_base_mass.params["mass_distribution_params"] = (0.0, 3.0)
+        self.events.add_base_mass.params["mass_distribution_params"] = (-1.0, 3.0)
         self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
         self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
@@ -504,12 +494,12 @@ class AlienGoVisionRoughEnvCfg(AlienGoBaseRoughEnvCfg):
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
 
-        # update sensor periods
-        self.scene.height_scanner.update_period = self.sim.dt * self.decimation
-        # self.scene.lidar_sensor.update_period = self.sim.dt * self.decimation
-
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
+
+        # update sensor periods
+        # self.scene.height_scanner.update_period = self.sim.dt * self.decimation
+        self.scene.lidar_sensor.update_period = self.sim.dt * self.decimation
 
         # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
         # this generates terrains with increasing difficulty and is useful for training

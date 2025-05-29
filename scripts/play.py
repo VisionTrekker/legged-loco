@@ -124,7 +124,7 @@ def main():
     # export policy to onnx
     export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
     # export_policy_as_onnx(ppo_runner.alg.actor_critic, export_model_dir, filename="policy.onnx")
-    export_policy_as_jit(ppo_runner.alg.actor_critic, None, path=export_model_dir, filename="policy.jit")
+    export_policy_as_jit(ppo_runner.alg.policy, None, path=export_model_dir, filename="policy.jit")
     # reset environment
     obs, _ = env.get_observations()
     if args_cli.video:
