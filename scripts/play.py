@@ -52,20 +52,20 @@ import imageio
 
 from rsl_rl.runners import OnPolicyRunner
 
-from omni.isaac.lab.envs import ManagerBasedRLEnvCfg
-from omni.isaac.lab.utils.io import load_yaml
-from omni.isaac.lab.utils import update_class_from_dict
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.utils.io import load_yaml
+from isaaclab.utils import update_class_from_dict
 
-import omni.isaac.lab_tasks  # noqa: F401
-from omni.isaac.lab_tasks.utils import get_checkpoint_path, parse_env_cfg
-from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import (
+import isaaclab_tasks  # noqa: F401
+from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
+from isaaclab_rl.rsl_rl import (
     RslRlOnPolicyRunnerCfg,
     RslRlVecEnvWrapper,
     export_policy_as_jit,
 )
 
-from omni.isaac.leggedloco.config import *
-from omni.isaac.leggedloco.utils import RslRlVecEnvHistoryWrapper
+from leggedloco_tasks.manager_based.locomotion.config import *
+from leggedloco_tasks.manager_based.locomotion.utils import RslRlVecEnvHistoryWrapper
 
 from utils import quat2eulers
 

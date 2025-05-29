@@ -52,19 +52,19 @@ from datetime import datetime
 
 from rsl_rl.runners import OnPolicyRunner
 
-from omni.isaac.lab.envs import ManagerBasedRLEnvCfg
-from omni.isaac.lab.utils.dict import print_dict
-from omni.isaac.lab.utils.io import dump_pickle, dump_yaml
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.utils.dict import print_dict
+from isaaclab.utils.io import dump_pickle, dump_yaml
 
-import omni.isaac.lab_tasks  # noqa: F401
-from omni.isaac.lab_tasks.utils import get_checkpoint_path, parse_env_cfg
-from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper
-from omni.isaac.lab_tasks.utils import get_checkpoint_path, parse_env_cfg
+import isaaclab_tasks  # noqa: F401
+from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
+from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper
+from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
 
 # from omni.isaac.viplanner.config import H1RoughEnvCfg, H1BaseRoughEnvCfg, H12DoFRoughEnvCfg, H1VisionRoughEnvCfg, G1VisionRoughEnvCfg
 # from omni.isaac.viplanner.config import H1RoughEnvCfg_PLAY, H1BaseRoughEnvCfg_PLAY, H12DoFRoughEnvCfg_PLAY, H1VisionRoughEnvCfg_PLAY, G1VisionRoughEnvCfg_PLAY
-from omni.isaac.leggedloco.config import *
-from omni.isaac.leggedloco.utils import RslRlVecEnvHistoryWrapper
+from leggedloco_tasks.manager_based.locomotion.config import *
+from leggedloco_tasks.manager_based.locomotion.utils import RslRlVecEnvHistoryWrapper
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True

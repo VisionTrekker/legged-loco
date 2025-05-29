@@ -15,32 +15,45 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     conda activate isaaclab
     ```
 
-2. Make sure that Isaac Sim is installed on your machine. Otherwise follow [this guideline](https://docs.omniverse.nvidia.com/isaacsim/latest/installation/install_workstation.html) to install it. If installing via the Omniverse Launcher, please ensure that Isaac Sim 4.1.0 is selected and installed. On Ubuntu 22.04 or higher, you could install it via pip:
+2. Install PyTorch with CUDA 121.
     ```shell
-    pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
+    pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+    ```
+   For 50 series GPU, you could install PyTorch 2.7.0 with CUDA 128.
+    ```shell
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+    ``` 
+
+3. To update pip.
+    ```shell
+    pip install --upgrade pip
     ```
 
-3. Install PyTorch.
+4. Make sure that Isaac Sim is installed on your machine. Otherwise follow [this guideline](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/pip_installation.html) to install it. Now it is suit for Isaac Sim 4.5.0 + IsaacLab 2.1.0. On Ubuntu 22.04 or higher, you could install it via pip:
     ```shell
-    pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cu121
+    pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
     ```
 
-4. Clone the Isaac Lab repository, and link extensions. 
-
-    **Note**: This codebase was tested with Isaac Lab 1.1.0 and may not be compatible with newer versions. Please make sure to use the modified version of Isaac Lab provided below, which includes important bug fixes and updates. As Isaac Lab is under active development, we will consider supporting newer versions in the future.
+5. Clone the Isaac Lab 2.1.0 repository and run the Isaac Lab installer script.
     ```shell
-    git clone git@github.com:yang-zj1026/IsaacLab.git
+    git clone git@github.com:isaac-sim/IsaacLab.git
     cd IsaacLab
-    cd source/extensions
-    ln -s {THIS_REPO_DIR}/isaaclab_exts/omni.isaac.leggedloco .
-    cd ../..
+    # Install dependencies using apt (on Ubuntu).
+    sudo apt install cmake build-essential
+    # install all the learning frameworks.
+    ./isaaclab.sh --install # or "./isaaclab.sh -i"
     ```
 
-5. Run the Isaac Lab installer script and additionally install rsl rl in this repo.
+5. Additionally install rsl rl and tasks in this repo.
     ```shell
-    ./isaaclab.sh -i none
-    ./isaaclab.sh -p -m pip install -e {THIS_REPO_DIR}/rsl_rl
-    cd ..
+    ./isaaclab.sh -p -m pip install -e {THIS_REPO_DIR}/source/leggedloco_rl
+    ./isaaclab.sh -p -m pip install -e {THIS_REPO_DIR}/source/leggedloco_tasks
+    
+    # or
+    cd {THIS_REPO_DIR}/source/leggedloco_rl
+    pip install -e .
+    cd ../leggedloco_tasks
+    pip install -e .
     ```
 
 
@@ -48,19 +61,16 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 * train
 
     ```shell
-    python scripts/train.py --task=go2_base --history_len=9 --run_name=XXX --max_iterations=2000 --save_interval=200 --headless
-
-    python scripts/train.py --task=h1_base --run_name=XXX --max_iterations=2000 --save_interval=200 --headless
+    python scripts/train.py --task=aliengo_base --history_len=9 --run_name=flat --max_iterations=2000 --save_interval=200 --headless
     ```
 
 * test
 
     ```shell
-    python scripts/play.py --task=go2_base_play --history_len=9 --load_run=RUN_NAME --num_envs=10
-    python scripts/play.py --task=h1_base_play --load_run=RUN_NAME --num_envs=10
+    python scripts/play.py --task=aliengo_base_play --history_len=9 --load_run=RUN_NAME --num_envs=10
     ```
 
     Use `--headless` to enable headless mode. Add `--enable_cameras --video` for headless rendering and video saving.
 
 ## Add New Environments
-You can add additional environments by placing them under `isaaclab_exts/omni.isaac.leggedloco/omni/isaac/leggedloco/config`.
+You can add additional environments by placing them under `/source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/config`.
