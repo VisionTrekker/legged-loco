@@ -14,7 +14,7 @@ import math
 import torch
 import numpy as np
 
-from omni.isaac.lab.app import AppLauncher
+from isaaclab.app import AppLauncher
 
 # local imports
 import cli_args  # isort: skip

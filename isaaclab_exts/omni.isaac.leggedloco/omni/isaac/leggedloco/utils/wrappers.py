@@ -21,8 +21,8 @@ import torch
 
 from rsl_rl.env import VecEnv
 
-from omni.isaac.lab.envs import DirectRLEnv, ManagerBasedRLEnv
-from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import RslRlVecEnvWrapper
+from isaaclab.envs import DirectRLEnv, ManagerBasedRLEnv
+from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
 
 def get_proprio_obs_dim(env: ManagerBasedRLEnv) -> int:

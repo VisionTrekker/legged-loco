@@ -6,7 +6,7 @@
 
 """This sub-module contains observation terms specific for viplanner.
 
-The functions can be passed to the :class:`omni.isaac.lab.managers.ObservationTermCfg` object to enable
+The functions can be passed to the :class:`isaaclab.managers.ObservationTermCfg` object to enable
 the observation introduced by the function.
 """
 
@@ -18,20 +18,20 @@ import os
 import torch
 import torch.nn.functional as F
 
-from omni.isaac.lab.managers import SceneEntityCfg
-from omni.isaac.lab.sensors import RayCaster
-from omni.isaac.lab.sensors.camera import CameraData
-from omni.isaac.lab.sensors.camera.utils import convert_orientation_convention
-import omni.isaac.lab.utils.math as math_utils
-from omni.isaac.lab.assets import Articulation, RigidObject
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.sensors import RayCaster
+from isaaclab.sensors.camera import CameraData
+from isaaclab.utils.math import convert_camera_frame_orientation_convention
+import isaaclab.utils.math as math_utils
+from isaaclab.assets import Articulation, RigidObject
 
 from .actions import NavigationAction, VLMActions, VLMActionsGPT
 import matplotlib.pyplot as plt
 import cv2
 
 if TYPE_CHECKING:
-    from omni.isaac.lab.envs.base_env import BaseEnv
-    from omni.isaac.lab.envs import ManagerBasedEnv
+    from isaaclab.envs.base_env import BaseEnv
+    from isaaclab.envs import ManagerBasedEnv
 
 
 def matterport_raycast_camera_data(env: BaseEnv, sensor_cfg: SceneEntityCfg, data_type: str) -> torch.Tensor:
@@ -173,7 +173,7 @@ def cam_orientation_ros(env: BaseEnv, sensor_cfg: SceneEntityCfg) -> torch.Tenso
     """Orientation of the camera."""
     # extract the used quantities (to enable type-hinting)
     sensor: CameraData = env.scene.sensors[sensor_cfg.name].data
-    return convert_orientation_convention(sensor.quat_w_world, origin="world", target="ros")
+    return convert_camera_frame_orientation_convention(sensor.quat_w_world, origin="world", target="ros")
     # return sensor.quat_w_world.clone()
 
 def low_level_actions(env: BaseEnv) -> torch.Tensor:

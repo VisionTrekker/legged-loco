@@ -1,30 +1,30 @@
 import platform
-from omni.isaac.lab.utils import configclass
-import omni.isaac.lab.sim as sim_utils
-from omni.isaac.lab.assets import ArticulationCfg, AssetBaseCfg
-from omni.isaac.lab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg, \
+from isaaclab.utils import configclass
+import isaaclab.sim as sim_utils
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg
+from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg, \
     TerminationsCfg
-from omni.isaac.lab.managers import ObservationGroupCfg as ObsGroup
-from omni.isaac.lab.managers import ObservationTermCfg as ObsTerm
-from omni.isaac.lab.managers import RewardTermCfg as RewTerm
-from omni.isaac.lab.managers import EventTermCfg as EventTerm
-from omni.isaac.lab.managers import SceneEntityCfg
-from omni.isaac.lab.terrains import TerrainImporterCfg, TerrainGeneratorCfg, FlatPatchSamplingCfg
-import omni.isaac.lab.terrains as terrain_gen
-from omni.isaac.lab.scene import InteractiveSceneCfg
-from omni.isaac.lab.sensors import ContactSensorCfg, RayCasterCfg, patterns, RayCasterCameraCfg
-from omni.isaac.lab.actuators import ImplicitActuatorCfg, DelayedPDActuatorCfg
-from omni.isaac.lab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR#, ROBOT_DIR
-from omni.isaac.lab.utils.noise import AdditiveUniformNoiseCfg as Unoise
-from omni.isaac.lab.envs import ManagerBasedRLEnvCfg
-from omni.isaac.lab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, CommandsCfg
-from omni.isaac.lab.managers import TerminationTermCfg as DoneTerm
+from isaaclab.managers import ObservationGroupCfg as ObsGroup
+from isaaclab.managers import ObservationTermCfg as ObsTerm
+from isaaclab.managers import RewardTermCfg as RewTerm
+from isaaclab.managers import EventTermCfg as EventTerm
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.terrains import TerrainImporterCfg, TerrainGeneratorCfg, FlatPatchSamplingCfg
+import isaaclab.terrains as terrain_gen
+from isaaclab.scene import InteractiveSceneCfg
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns, RayCasterCameraCfg
+from isaaclab.actuators import ImplicitActuatorCfg, DelayedPDActuatorCfg
+from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR#, ROBOT_DIR
+from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, CommandsCfg
+from isaaclab.managers import TerminationTermCfg as DoneTerm
 import os
 import omni.isaac.leggedloco.leggedloco.mdp as mdp
 ##
 # Pre-defined configs
 ##
-from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import (
+from isaaclab_rl.rsl_rl import (
     RslRlOnPolicyRunnerCfg,
     RslRlPpoActorCriticCfg,
     RslRlPpoAlgorithmCfg,

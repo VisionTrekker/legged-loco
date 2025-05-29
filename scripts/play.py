@@ -10,7 +10,7 @@
 import argparse
 import subprocess
 
-from omni.isaac.lab.app import AppLauncher
+from isaaclab.app import AppLauncher
 
 # local imports
 import cli_args  # isort: skip
