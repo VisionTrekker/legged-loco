@@ -62,6 +62,9 @@ class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     )
 
 
+##
+# Robot configuration
+##
 UNITREE_ALIENGO_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         # usd_path=f"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.1/Isaac/Robots/Unitree/aliengo/aliengo.usd",
@@ -192,7 +195,7 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-        debug_vis=True,
+        debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
@@ -338,8 +341,8 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.4, 4.0),
-            "dynamic_friction_range": (0.4, 2.0),
+            "static_friction_range": (0.2, 1.0),
+            "dynamic_friction_range": (0.2, 0.8),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -487,14 +490,12 @@ class AlienGoBaseRoughEnvCfg(ManagerBasedRLEnvCfg):
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
 
-        self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
-        # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
-        # this generates terrains with increasing difficulty and is useful for training
-
         # update sensor period
         self.scene.contact_forces.update_period = self.sim.dt
         self.scene.height_scanner.update_period = self.sim.dt * self.decimation
 
+        # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
+        # this generates terrains with increasing difficulty and is useful for training
         if getattr(self.curriculum, "terrain_levels", None) is not None:
             if self.scene.terrain.terrain_generator is not None:
                 self.scene.terrain.terrain_generator.curriculum = True

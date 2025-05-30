@@ -1,6 +1,7 @@
 import gymnasium as gym
 
 from .aliengo_low_base_cfg import AlienGoBaseRoughEnvCfg, AlienGoBaseRoughEnvCfg_PLAY, AlienGoRoughPPORunnerCfg
+from .aliengo_low_base_lidar_cfg import AlienGoBaseLidarRoughEnvCfg, AlienGoBaseLidarRoughEnvCfg_PLAY
 from .aliengo_low_vision_cfg import AlienGoVisionRoughEnvCfg, AlienGoVisionRoughEnvCfg_PLAY, AlienGoVisionRoughPPORunnerCfg
 
 ##
@@ -17,7 +18,6 @@ gym.register(
     },
 )
 
-
 gym.register(
     id="aliengo_base_play",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
@@ -27,6 +27,28 @@ gym.register(
         "rsl_rl_cfg_entry_point": AlienGoRoughPPORunnerCfg,
     },
 )
+
+
+gym.register(
+    id="aliengo_base_lidar",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": AlienGoBaseLidarRoughEnvCfg,
+        "rsl_rl_cfg_entry_point": AlienGoRoughPPORunnerCfg,
+    },
+)
+
+gym.register(
+    id="aliengo_base_lidar_play",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": AlienGoBaseLidarRoughEnvCfg_PLAY,
+        "rsl_rl_cfg_entry_point": AlienGoRoughPPORunnerCfg,
+    },
+)
+
 
 gym.register(
     id="aliengo_vision",

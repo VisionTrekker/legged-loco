@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
+    <content url="file://$USER_HOME$/miniconda3/envs/isaaclab/lib/python3.10/site-packages/isaacsim" />
     <content url="file://$MODULE_DIR$/../IsaacLab/source/isaaclab" />
     <content url="file://$MODULE_DIR$/../IsaacLab/source/isaaclab_assets" />
     <content url="file://$MODULE_DIR$/../IsaacLab/source/isaaclab_mimic" />
     <content url="file://$MODULE_DIR$/../IsaacLab/source/isaaclab_rl" />
     <content url="file://$MODULE_DIR$/../IsaacLab/source/isaaclab_tasks" />
-    <content url="file://$MODULE_DIR$/source/leggedloco_rl" />
-    <content url="file://$MODULE_DIR$/source/leggedloco_tasks" />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/source/leggedloco_tasks" isTestSource="false" />
     </content>
-    <content url="file://$USER_HOME$/miniconda3/envs/isaaclab/lib/python3.10/site-packages/isaacsim" />
-    <orderEntry type="jdk" jdkName="isaaclab" jdkType="Python SDK" />
+    <content url="file://$MODULE_DIR$/source/leggedloco_rl" />
+    <content url="file://$MODULE_DIR$/source/leggedloco_tasks" />
+    <orderEntry type="jdk" jdkName="isaaclab_21" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">
