@@ -32,7 +32,7 @@ from isaaclab_rl.rsl_rl import (
     RslRlPpoAlgorithmCfg,
 )
 
-from .aliengo_low_base_cfg import ALIENGO_BASE_TERRAINS_CFG, CustomAlienGoRewardsCfg, EventCfg
+from .aliengo_low_base_cfg import ALIENGO_BASE_TERRAINS_CFG, CustomAlienGoTerminationsCfg, EventCfg
 
 
 ##
@@ -61,9 +61,9 @@ UNITREE_ALIENGO_CFG = ArticulationCfg(
         joint_pos={
             ".*L_hip_joint": 0.1,
             ".*R_hip_joint": -0.1,
-            "F[L,R]_thigh_joint": 0.6,
-            "R[L,R]_thigh_joint": 0.8,
-            "F[L,R]_calf_joint": -1.7,
+            "F[L,R]_thigh_joint": 0.8,
+            "R[L,R]_thigh_joint": 1.0,
+            "F[L,R]_calf_joint": -1.5,
             "R[L,R]_calf_joint": -1.5,
         },
         joint_vel={".*": 0.0},
@@ -143,6 +143,51 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
             intensity=750.0,
             texture_file=f"{ISAAC_NUCLEUS_DIR}/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
         ),
+    )
+
+
+##
+# Rewards
+##
+@configclass
+class CustomAlienGoRewardsCfg(RewardsCfg):
+    hip_deviation = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.4,
+        # params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"])},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint"])},
+    )
+    joint_deviation = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.04,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_thigh_joint", ".*_calf_joint"])},
+    )
+    base_height = RewTerm(
+        func=mdp.base_height_l2,
+        weight=-5.0,
+        params={"target_height": 0.40},
+    )
+    action_smoothness = RewTerm(
+        func=mdp.action_smoothness_penalty,
+        weight=-0.02,
+    )
+    joint_power = RewTerm(
+        func=mdp.power_penalty,
+        weight=-2e-5,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
+    )
+    # feet_slide = RewTerm(
+    #     func=mdp.feet_slide,
+    #     weight=-0.05,
+    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
+    # )
+    collision = RewTerm(
+        func=mdp.collision_penalty,
+        weight=-5.0,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=[".*_calf"]),
+            "threshold": 1.0,
+        },
     )
 
 
@@ -243,7 +288,7 @@ class AlienGoBaseLidarRoughEnvCfg(ManagerBasedRLEnvCfg):
     commands: CommandsCfg = CommandsCfg()
     # MDP settings
     rewards: RewardsCfg = CustomAlienGoRewardsCfg()
-    terminations: TerminationsCfg = TerminationsCfg()
+    terminations: TerminationsCfg = CustomAlienGoTerminationsCfg()
     events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
 

@@ -21,6 +21,7 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.envs import ManagerBasedRLEnvCfg
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, TerminationsCfg, CommandsCfg
+from isaaclab.managers import TerminationTermCfg as DoneTerm
 import os
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
 ##
@@ -86,10 +87,10 @@ UNITREE_ALIENGO_CFG = ArticulationCfg(
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.55),
         joint_pos={
-            ".*L_hip_joint": 0.0,
-            ".*R_hip_joint": -0.0,
+            ".*L_hip_joint": 0.1,
+            ".*R_hip_joint": -0.1,
             "F[L,R]_thigh_joint": 0.8,
-            "R[L,R]_thigh_joint": 0.8,
+            "R[L,R]_thigh_joint": 1.0,
             ".*_calf_joint": -1.5,
         },
         joint_vel={".*": 0.0},
@@ -213,8 +214,9 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
 ##
 # Rewards
 ##
-@configclass 
+@configclass
 class CustomAlienGoRewardsCfg(RewardsCfg):
+    # 关节位置 与 默认关节位置的 L1偏差
     hip_deviation = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.4,
@@ -231,6 +233,7 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
         weight=-5.0,
         params={"target_height": 0.40},
     )
+    # 相邻两个 actions 之间的 L2范数
     action_smoothness = RewTerm(
         func=mdp.action_smoothness_penalty,
         weight=-0.02,
@@ -245,6 +248,27 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
     #     weight=-0.05,
     #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
     # )
+    collision = RewTerm(
+        func=mdp.collision_penalty,
+        weight=-5.0,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=[".*_calf"]),
+            "threshold": 1.0,
+        },
+    )
+
+
+##
+# Terminations
+##
+class CustomAlienGoTerminationsCfg(TerminationsCfg):
+    """Termination terms for the MDP."""
+
+    time_out = DoneTerm(func=mdp.time_out, time_out=True)
+    base_contact = DoneTerm(
+        func=mdp.illegal_contact,
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["trunk"]), "threshold": 1.0},
+    )
 
 
 ##
@@ -423,7 +447,7 @@ class AlienGoBaseRoughEnvCfg(ManagerBasedRLEnvCfg):
     commands: CommandsCfg = CommandsCfg()
     # MDP settings
     rewards: RewardsCfg = CustomAlienGoRewardsCfg()
-    terminations: TerminationsCfg = TerminationsCfg()
+    terminations: TerminationsCfg = CustomAlienGoTerminationsCfg()
     events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
 

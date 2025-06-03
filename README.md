@@ -62,7 +62,7 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 * base (flat terrain)
     ```shell
     # height_scan
-    python scripts/train.py --task=aliengo_base --history_len=9 --run_name=flat_heightscan --max_iterations=2000 --save_interval=200 --headless --enable_cameras --video
+    python scripts/train.py --task=aliengo_base --history_len=9 --run_name=flat_heightscan --max_iterations=2000 --save_interval=200 --headless
     
     # 360 lidar
     python scripts/train.py --task=aliengo_base_lidar --history_len=9 --run_name=flat_lidar --max_iterations=4000 --save_interval=200 --headless
@@ -72,8 +72,8 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     # scratch
     python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs --max_iterations=10000 --save_interval=200 --headless
     
-    # two stage (doesn't work)
-    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs_loadflat --resume --load_experiment aliengo_base --load_run="2025-05-30_01-01-01_flat_lidar" --max_iterations=10000 --save_interval=200 --headless
+    # two stage
+    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs_loadflat --resume --load_experiment aliengo_base --load_run="2025-06-03_09-52-26_flat_lidar" --max_iterations=7000 --save_interval=200 --headless
     ```
 
 ### test

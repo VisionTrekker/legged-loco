@@ -109,6 +109,7 @@ def base_height_l2(
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     # TODO: Fix this for rough-terrain.
+    # asset.data.root_pos_w[:, 2] 获取的是 机器狗 相对于 平地的 高度，因此不适用于 rough terrain
     return torch.square(asset.data.root_pos_w[:, 2] - target_height)
 
 
