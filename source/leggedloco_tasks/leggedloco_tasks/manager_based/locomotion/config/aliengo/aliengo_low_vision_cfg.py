@@ -99,7 +99,6 @@ UNITREE_ALIENGO_CFG = ArticulationCfg(
             velocity_limit=20.0,
             stiffness=40.0,
             damping=2.0,
-            friction=0.0,
         )
     }
 )
@@ -119,29 +118,23 @@ ALIENGO_VISION_TERRAINS_CFG = TerrainGeneratorCfg(
     use_cache=False,
     sub_terrains={
         "pyramid_stairs": terrain_gen.MeshPyramidStairsTerrainCfg(
-            proportion=0.2,
-            step_height_range=(0.05, 0.23),
+            proportion=0.3,
+            step_height_range=(0.06, 0.20),
             step_width=0.3,
             platform_width=3.0,
             border_width=1.0,
             holes=False,
         ),
         "pyramid_stairs_inv": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
-            proportion=0.2,
-            step_height_range=(0.05, 0.23),
+            proportion=0.4,
+            step_height_range=(0.06, 0.20),
             step_width=0.3,
             platform_width=3.0,
             border_width=1.0,
             holes=False,
         ),
-        "boxes": terrain_gen.MeshRandomGridTerrainCfg(
-            proportion=0.1, grid_width=0.45, grid_height_range=(0.05, 0.2), platform_width=2.0
-        ),
-        "flat": terrain_gen.MeshPlaneTerrainCfg(
-            proportion=0.1,
-        ),
         "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
-            proportion=0.2, noise_range=(0.02, 0.10), noise_step=0.02, border_width=0.25
+            proportion=0.1, noise_range=(0.01, 0.06), noise_step=0.01, border_width=0.25
         ),
         "hf_pyramid_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
             proportion=0.1, slope_range=(0.0, 0.4), platform_width=2.0, border_width=0.25
@@ -185,14 +178,14 @@ class AlienGoVisionSceneCfg(InteractiveSceneCfg):
     robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # sensors
-    # height_scanner = RayCasterCfg(
-    #     prim_path="{ENV_REGEX_NS}/Robot/base",
-    #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
-    #     attach_yaw_only=True,
-    #     pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-    #     debug_vis=False,
-    #     mesh_prim_paths=["/World/ground"],
-    # )
+    height_scanner = RayCasterCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/base",
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
+        attach_yaw_only=True,
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
+        debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
+    )
     lidar_sensor = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.05), rot=(0.0, 0.0, 0.0, 0.0)),
@@ -220,10 +213,25 @@ class AlienGoVisionSceneCfg(InteractiveSceneCfg):
 ##
 @configclass 
 class CustomAlienGoRewardsCfg(RewardsCfg):
+    feet_air_time = RewTerm(
+        func=mdp.air_time_reward,
+        weight=1.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
+            "mode_time": 0.3,
+            "velocity_threshold": 0.5,
+        }
+    )
     joint_deviation = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"])},
+    )
+    flat_orientation_l2 = RewTerm(
+        func=mdp.flat_orientation_l2,
+        weight=-0.5,
+        params={"asset_cfg": SceneEntityCfg("robot")},
     )
     feet_stumble = RewTerm(
         func=mdp.feet_stumble,
@@ -307,7 +315,6 @@ class ObservationsCfg:
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
-            self.enable_corruption = True
             self.concatenate_terms = True
 
     @configclass
@@ -326,7 +333,7 @@ class ObservationsCfg:
         actions = ObsTerm(func=mdp.last_action)
         height_scan = ObsTerm(
             func=mdp.height_scan,
-            params={"sensor_cfg": SceneEntityCfg("lidar_sensor")},
+            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
             clip=(-1.0, 1.0),
         )
 
@@ -354,7 +361,7 @@ class EventCfg:
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
             "static_friction_range": (0.2, 0.8),
-            "dynamic_friction_range": (0.2, 0.6),
+            "dynamic_friction_range": (0.1, 0.6),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -454,8 +461,9 @@ class AlienGoVisionRoughEnvCfg(ManagerBasedRLEnvCfg):
         self.sim.physics_material.restitution_combine_mode = "average"
 
         # scale the terrains for aliengo
-        self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.02, 0.08)
+        # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
+        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
+        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
 
         # reduce action scale
         self.actions.joint_pos.scale = 0.5
@@ -467,7 +475,7 @@ class AlienGoVisionRoughEnvCfg(ManagerBasedRLEnvCfg):
         self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.reset_base.params = {
-            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
+            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.157, 0.157)},
             "velocity_range": {
                 "x": (0.0, 0.0),
                 "y": (0.0, 0.0),
@@ -480,7 +488,7 @@ class AlienGoVisionRoughEnvCfg(ManagerBasedRLEnvCfg):
 
         # rewards
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
-        self.rewards.feet_air_time.weight = 0.01
+        self.rewards.feet_air_time.weight = 0.10
         self.rewards.undesired_contacts = None
         self.rewards.dof_torques_l2.weight = -0.0002
         self.rewards.track_lin_vel_xy_exp.weight = 1.5
@@ -489,16 +497,16 @@ class AlienGoVisionRoughEnvCfg(ManagerBasedRLEnvCfg):
         # self.rewards.dof_pos_limits.weight = -0.0002
 
         # Commands
-        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)
 
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
 
         # update sensor periods
         self.scene.contact_forces.update_period = self.sim.dt
-        # self.scene.height_scanner.update_period = self.sim.dt * self.decimation
+        self.scene.height_scanner.update_period = self.sim.dt * self.decimation
         self.scene.lidar_sensor.update_period = self.sim.dt * self.decimation
 
         # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
@@ -521,14 +529,14 @@ class AlienGoVisionRoughEnvCfg_PLAY(AlienGoVisionRoughEnvCfg):
         self.scene.num_envs = 50
         self.scene.env_spacing = 2.5
         # spawn the robot randomly in the grid (instead of their terrain levels)
-        self.scene.terrain.max_init_terrain_level = None
+        self.scene.terrain.max_init_terrain_level = 2
         # reduce the number of terrains to save memory
         if self.scene.terrain.terrain_generator is not None:
-            self.scene.terrain.terrain_generator.num_rows = 5
-            self.scene.terrain.terrain_generator.num_cols = 5
-            self.scene.terrain.terrain_generator.curriculum = False
-            # self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.16)
-            # self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.16)
+            self.scene.terrain.terrain_generator.num_rows = 10
+            self.scene.terrain.terrain_generator.num_cols = 10
+            self.scene.terrain.terrain_generator.curriculum = True
+            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.16)
+            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.16)
 
         # disable randomization for play
         self.observations.policy.enable_corruption = False
@@ -540,4 +548,4 @@ class AlienGoVisionRoughEnvCfg_PLAY(AlienGoVisionRoughEnvCfg):
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)

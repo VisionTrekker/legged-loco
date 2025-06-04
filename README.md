@@ -65,7 +65,7 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     python scripts/train.py --task=aliengo_base --history_len=9 --run_name=flat_heightscan --max_iterations=2000 --save_interval=200 --headless
     
     # 360 lidar
-    python scripts/train.py --task=aliengo_base_lidar --history_len=9 --run_name=flat_lidar --max_iterations=4000 --save_interval=200 --headless
+    python scripts/train.py --task=aliengo_base_lidar --history_len=9 --run_name=flat_lidar --max_iterations=2000 --save_interval=200 --headless
     ```
 * vision (stairs terrain)
     ```shell
@@ -73,16 +73,16 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs --max_iterations=10000 --save_interval=200 --headless
     
     # two stage
-    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs_loadflat --resume --load_experiment aliengo_base --load_run="2025-06-03_09-52-26_flat_lidar" --max_iterations=7000 --save_interval=200 --headless
+    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs_loadflat --resume True --load_experiment aliengo_base --load_run="2025-06-04_11-42-50_flat_lidar" --max_iterations=5000 --save_interval=200 --headless
     ```
 
 ### test
 * 
     ```shell
-    python scripts/play.py --task=aliengo_base_play --history_len=9 --load_run=RUN_NAME --num_envs=10
+    python scripts/play.py --task=aliengo_base_play --history_len=9 --load_run=RUN_NAME
     ```
 
-    Use `--headless` to enable headless mode. Add `--enable_cameras --video` for headless rendering and video saving.
+    Use `--headless` to enable headless mode. Add `--video` for headless rendering and video saving.
 
 ## Add New Environments
 You can add additional environments by placing them under `/source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/config`.

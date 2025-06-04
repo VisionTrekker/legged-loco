@@ -116,14 +116,14 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
     robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # sensors
-    # height_scanner = RayCasterCfg(
-    #     prim_path="{ENV_REGEX_NS}/Robot/base",
-    #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
-    #     attach_yaw_only=True,
-    #     pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-    #     debug_vis=False,
-    #     mesh_prim_paths=["/World/ground"],
-    # )
+    height_scanner = RayCasterCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/base",
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
+        attach_yaw_only=True,
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
+        debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
+    )
     lidar_sensor = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.05), rot=(0.0, 0.0, 0.0, 0.0)),
@@ -151,6 +151,16 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
 ##
 @configclass
 class CustomAlienGoRewardsCfg(RewardsCfg):
+    feet_air_time = RewTerm(
+        func=mdp.air_time_reward,
+        weight=1.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
+            "mode_time": 0.3,
+            "velocity_threshold": 0.5,
+        }
+    )
     hip_deviation = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.4,
@@ -264,7 +274,7 @@ class ObservationsCfg:
         actions = ObsTerm(func=mdp.last_action)
         height_scan = ObsTerm(
             func=mdp.height_scan,
-            params={"sensor_cfg": SceneEntityCfg("lidar_sensor")},
+            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
             clip=(-1.0, 1.0),
         )
 
@@ -323,7 +333,7 @@ class AlienGoBaseLidarRoughEnvCfg(ManagerBasedRLEnvCfg):
         self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.reset_base.params = {
-            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
+            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.314, 0.314)},
             "velocity_range": {
                 "x": (0.0, 0.0),
                 "y": (0.0, 0.0),
@@ -357,6 +367,7 @@ class AlienGoBaseLidarRoughEnvCfg(ManagerBasedRLEnvCfg):
 
         # update sensor period
         self.scene.contact_forces.update_period = self.sim.dt
+        self.scene.height_scanner.update_period = self.sim.dt * self.decimation
         self.scene.lidar_sensor.update_period = self.sim.dt * self.decimation
 
         # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
@@ -396,4 +407,4 @@ class AlienGoBaseLidarRoughEnvCfg_PLAY(AlienGoBaseLidarRoughEnvCfg):
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.157, 0.157)

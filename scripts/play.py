@@ -37,6 +37,9 @@ cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
+# always enable cameras to record video
+if args_cli.video:
+    args_cli.enable_cameras = True
 
 # launch omniverse app
 app_launcher = AppLauncher(args_cli)
@@ -53,6 +56,7 @@ import imageio
 from rsl_rl.runners import OnPolicyRunner
 
 from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.utils.dict import print_dict
 from isaaclab.utils.io import load_yaml
 from isaaclab.utils import update_class_from_dict
 
@@ -71,7 +75,7 @@ from utils import quat2eulers
 
 
 def main():
-    """Train with RSL-RL agent."""
+    """Play with RSL-RL agent."""
     # parse configuration
     # env_cfg: ManagerBasedRLEnvCfg = parse_env_cfg(
     #     args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
@@ -82,7 +86,7 @@ def main():
     # specify directory for logging experiments
     log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
     log_root_path = os.path.abspath(log_root_path)
-    # print(f"[INFO] Logging experiment in directory: {log_root_path}")
+    print(f"[INFO] Logging experiment in directory: {log_root_path}")
     # specify directory for logging runs: {time-stamp}_{run_name}
     log_dir = os.path.join(log_root_path, args_cli.load_run)
     print(f"[INFO] Loading run from directory: {log_dir}")
@@ -96,6 +100,19 @@ def main():
 
     # create isaac environment
     env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+
+    # wrap for video recording
+    if args_cli.video:
+        video_kwargs = {
+            "video_folder": os.path.join(log_dir, "videos", "play"),
+            "step_trigger": lambda step: step == 0,
+            "video_length": args_cli.video_length,
+            "disable_logger": True,
+        }
+        print("[INFO] Recording videos during training.")
+        print_dict(video_kwargs, nesting=4)
+        env = gym.wrappers.RecordVideo(env, **video_kwargs)
+
     # wrap around environment for rsl-rl
     if args_cli.history_length > 0:
         env = RslRlVecEnvHistoryWrapper(env, history_length=args_cli.history_length)
@@ -103,21 +120,18 @@ def main():
         env = RslRlVecEnvWrapper(env)
 
     # specify directory for logging experiments
-    log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
-    log_root_path = os.path.abspath(log_root_path)
-    print(f"[INFO] Loading experiment from directory: {log_root_path}")
     resume_path = get_checkpoint_path(log_root_path, args_cli.load_run, agent_cfg.load_checkpoint)
+    print(f"[INFO]: Loading model checkpoint from: {resume_path}")
 
     # load previously trained model
     ppo_runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
     ppo_runner.load(resume_path)
-    print(f"[INFO]: Loading model checkpoint from: {resume_path}")
 
     # obtain the trained policy for inference
     policy = ppo_runner.get_inference_policy(device=env.unwrapped.device)
     robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
-    cam_eye = (robot_pos_w[0]+2.5, robot_pos_w[1]+2.5, 20)
-    cam_target = (robot_pos_w[0], robot_pos_w[1], 0.0)
+    cam_eye = (robot_pos_w[0]-8, robot_pos_w[1]-8, 8)
+    cam_target = (robot_pos_w[0]-3, robot_pos_w[1]-3, 0.0)
     # set the camera view
     env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)
 
@@ -133,8 +147,8 @@ def main():
         frames = [init_frame]
     
         robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
-        cam_eye = (robot_pos_w[0]+2.5, robot_pos_w[1]+2.5, 5)
-        cam_target = (robot_pos_w[0], robot_pos_w[1], 0.0)
+        cam_eye = (robot_pos_w[0]-8, robot_pos_w[1]-8, 5)
+        cam_target = (robot_pos_w[0]-3, robot_pos_w[1]-3, 0.0)
         # set the camera view
         env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)
 
@@ -156,7 +170,7 @@ def main():
                 robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
                 robot_quat_w = env.unwrapped.scene["robot"].data.root_quat_w[0].detach().cpu().numpy()
                 roll, pitch, yaw = quat2eulers(robot_quat_w[0], robot_quat_w[1], robot_quat_w[2], robot_quat_w[3])
-                cam_eye = (robot_pos_w[0] + 3.0, robot_pos_w[1] + 3.0, robot_pos_w[2] + 3.0)
+                cam_eye = (robot_pos_w[0] - 5.0, robot_pos_w[1] - 5.0, robot_pos_w[2] + 3.0)
                 cam_target = (robot_pos_w[0], robot_pos_w[1], robot_pos_w[2])
                 # set the camera view
                 env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)

@@ -145,7 +145,7 @@ ALIENGO_BASE_TERRAINS_CFG = TerrainGeneratorCfg(
         # ),
         "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=0.4),
         "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
-            proportion=0.4, noise_range=(0.02, 0.05), noise_step=0.02, border_width=0.25
+            proportion=0.4, noise_range=(0.01, 0.06), noise_step=0.01, border_width=0.25
         ),
         # "gaps": terrain_gen.MeshGapTerrainCfg(
         #     proportion=0.1, gap_width_range=(0.5, 1.0), platform_width=2.0
@@ -217,6 +217,16 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
 @configclass
 class CustomAlienGoRewardsCfg(RewardsCfg):
     # 关节位置 与 默认关节位置的 L1偏差
+    feet_air_time = RewTerm(
+        func=mdp.air_time_reward,
+        weight=1.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
+            "mode_time": 0.3,
+            "velocity_threshold": 0.5,
+        }
+    )
     hip_deviation = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.4,
@@ -365,8 +375,8 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.2, 1.0),
-            "dynamic_friction_range": (0.2, 0.8),
+            "static_friction_range": (0.2, 0.8),
+            "dynamic_friction_range": (0.1, 0.6),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -482,7 +492,7 @@ class AlienGoBaseRoughEnvCfg(ManagerBasedRLEnvCfg):
         self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.reset_base.params = {
-            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
+            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.314, 0.314)},
             "velocity_range": {
                 "x": (0.0, 0.0),
                 "y": (0.0, 0.0),
@@ -555,4 +565,4 @@ class AlienGoBaseRoughEnvCfg_PLAY(AlienGoBaseRoughEnvCfg):
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.157, 0.157)
