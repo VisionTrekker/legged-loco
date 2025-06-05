@@ -46,14 +46,8 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 
 5. Additionally install rsl rl and tasks in this repo.
     ```shell
-    ./isaaclab.sh -p -m pip install -e {THIS_REPO_DIR}/source/leggedloco_rl
-    ./isaaclab.sh -p -m pip install -e {THIS_REPO_DIR}/source/leggedloco_tasks
-    
-    # or
-    cd {THIS_REPO_DIR}/source/leggedloco_rl
-    pip install -e .
-    cd ../leggedloco_tasks
-    pip install -e .
+    python -m pip install -e {THIS_REPO_DIR}/source/leggedloco_rl
+    python -m pip install -e {THIS_REPO_DIR}/source/leggedloco_tasks
     ```
 
 
@@ -70,10 +64,10 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 * vision (stairs terrain)
     ```shell
     # scratch
-    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs --max_iterations=10000 --save_interval=200 --headless
+    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs --max_iterations=2600 --save_interval=200 --headless
     
     # two stage
-    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs_loadflat --resume True --load_experiment aliengo_base --load_run="2025-06-04_11-42-50_flat_lidar" --max_iterations=5000 --save_interval=200 --headless
+    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs_loadflat --resume True --load_experiment aliengo_base --load_run="2025-06-04_11-42-50_flat_lidar" --max_iterations=3000 --save_interval=200 --headless
     ```
 
 ### test

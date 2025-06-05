@@ -188,7 +188,7 @@ class AlienGoVisionSceneCfg(InteractiveSceneCfg):
     )
     lidar_sensor = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
-        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.05), rot=(0.0, 0.0, 0.0, 0.0)),
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.05), rot=(1.0, 0.0, 0.0, 0.0)),
         attach_yaw_only=False,
         pattern_cfg=patterns.LidarPatternCfg(
             channels=32, vertical_fov_range=(-7.0, 52.0), horizontal_fov_range=(-180, 180.0), horizontal_res=1.3
