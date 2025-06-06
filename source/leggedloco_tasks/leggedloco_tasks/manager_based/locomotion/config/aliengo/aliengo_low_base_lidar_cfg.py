@@ -12,7 +12,7 @@ from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import SceneEntityCfg
-from isaaclab.terrains import TerrainImporterCfg, TerrainGeneratorCfg
+from isaaclab.terrains import TerrainImporterCfg
 import isaaclab.terrains as terrain_gen
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
@@ -32,56 +32,9 @@ from isaaclab_rl.rsl_rl import (
     RslRlPpoAlgorithmCfg,
 )
 
-from .aliengo_low_base_cfg import ALIENGO_BASE_TERRAINS_CFG, CustomAlienGoTerminationsCfg, EventCfg
-
-
-##
-# Robot configuration
-##
-UNITREE_ALIENGO_CFG = ArticulationCfg(
-    spawn=sim_utils.UsdFileCfg(
-        # usd_path=f"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.1/Isaac/Robots/Unitree/aliengo/aliengo.usd",
-        usd_path=f"{os.getenv('USER_PATH_TO_USD')}/robots/aliengo/aliengo.usd",
-        activate_contact_sensors=True,
-        rigid_props=sim_utils.RigidBodyPropertiesCfg(
-            disable_gravity=False,
-            retain_accelerations=False,
-            linear_damping=0.0,
-            angular_damping=0.0,
-            max_linear_velocity=1000.0,
-            max_angular_velocity=1000.0,
-            max_depenetration_velocity=1.0,
-        ),
-        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-            enabled_self_collisions=False, solver_position_iteration_count=4, solver_velocity_iteration_count=0
-        ),
-    ),
-    init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.55),
-        joint_pos={
-            ".*L_hip_joint": 0.1,
-            ".*R_hip_joint": -0.1,
-            "F[L,R]_thigh_joint": 0.8,
-            "R[L,R]_thigh_joint": 1.0,
-            "F[L,R]_calf_joint": -1.5,
-            "R[L,R]_calf_joint": -1.5,
-        },
-        joint_vel={".*": 0.0},
-    ),
-    soft_joint_pos_limit_factor=0.9,
-    actuators={
-        "base_legs": DelayedPDActuatorCfg(
-            joint_names_expr=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"],
-            effort_limit=55.0,
-            velocity_limit=20.0,
-            stiffness=40.0,
-            damping=2.0,
-            friction=0.0,
-            min_delay=4,
-            max_delay=4,
-        )
-    }
-)
+from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG
+from ...terrains import FLAT_TERRAINS_CFG
+from .aliengo_low_base_cfg import CustomAlienGoTerminationsCfg, EventCfg
 
 
 ##
@@ -95,7 +48,7 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
     terrain = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="generator",
-        terrain_generator=ALIENGO_BASE_TERRAINS_CFG,
+        terrain_generator=FLAT_TERRAINS_CFG,
         max_init_terrain_level=2,
         collision_group=-1,
         physics_material=sim_utils.RigidBodyMaterialCfg(
@@ -113,7 +66,7 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
     )
 
     # robots
-    robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    robot: ArticulationCfg = UNITREE_ALIENGO_DCMOTOR_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # sensors
     height_scanner = RayCasterCfg(

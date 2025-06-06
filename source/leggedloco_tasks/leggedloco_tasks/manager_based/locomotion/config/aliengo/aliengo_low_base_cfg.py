@@ -13,10 +13,8 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.terrains import TerrainImporterCfg, TerrainGeneratorCfg
-import isaaclab.terrains as terrain_gen
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
-from isaaclab.actuators import ImplicitActuatorCfg, DelayedPDActuatorCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.envs import ManagerBasedRLEnvCfg
@@ -24,140 +22,9 @@ from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import Ac
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 import os
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
-##
-# Pre-defined configs
-##
-from isaaclab_rl.rsl_rl import (
-    RslRlOnPolicyRunnerCfg,
-    RslRlPpoActorCriticCfg,
-    RslRlPpoAlgorithmCfg,
-)
 
-
-@configclass
-class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 24
-    max_iterations = 5000
-    save_interval = 50
-    experiment_name = "aliengo_base"
-    empirical_normalization = False
-    policy = RslRlPpoActorCriticCfg(
-        init_noise_std=1.0,
-        actor_hidden_dims=[512, 256, 128],
-        critic_hidden_dims=[512, 256, 128],
-        activation="elu",
-    )
-    algorithm = RslRlPpoAlgorithmCfg(
-        value_loss_coef=1.0,
-        use_clipped_value_loss=True,
-        clip_param=0.2,
-        entropy_coef=0.01,
-        num_learning_epochs=5,
-        num_mini_batches=4,
-        learning_rate=1.0e-3,
-        schedule="adaptive",
-        gamma=0.99,
-        lam=0.95,
-        desired_kl=0.01,
-        max_grad_norm=1.0,
-    )
-
-
-##
-# Robot configuration
-##
-UNITREE_ALIENGO_CFG = ArticulationCfg(
-    spawn=sim_utils.UsdFileCfg(
-        # usd_path=f"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.1/Isaac/Robots/Unitree/aliengo/aliengo.usd",
-        usd_path=f"{os.getenv('USER_PATH_TO_USD')}/robots/aliengo/aliengo.usd",
-        activate_contact_sensors=True,
-        rigid_props=sim_utils.RigidBodyPropertiesCfg(
-            disable_gravity=False,
-            retain_accelerations=False,
-            linear_damping=0.0,
-            angular_damping=0.0,
-            max_linear_velocity=1000.0,
-            max_angular_velocity=1000.0,
-            max_depenetration_velocity=1.0,
-        ),
-        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-            enabled_self_collisions=False, solver_position_iteration_count=4, solver_velocity_iteration_count=0
-        ),
-    ),
-    init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.55),
-        joint_pos={
-            ".*L_hip_joint": 0.1,
-            ".*R_hip_joint": -0.1,
-            "F[L,R]_thigh_joint": 0.8,
-            "R[L,R]_thigh_joint": 1.0,
-            ".*_calf_joint": -1.5,
-        },
-        joint_vel={".*": 0.0},
-    ),
-    soft_joint_pos_limit_factor=0.9,
-    actuators={
-        "base_legs": DelayedPDActuatorCfg(
-            joint_names_expr=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"],
-            effort_limit=55.0,
-            velocity_limit=20.0,
-            stiffness=40.0,
-            damping=2.0,
-            friction=0.0,
-            min_delay=4,
-            max_delay=4,
-        )
-    }
-)
-
-
-##
-# Configuration for custom terrains.
-##
-ALIENGO_BASE_TERRAINS_CFG = TerrainGeneratorCfg(
-    size=(8.0, 8.0),
-    border_width=20.0,
-    num_rows=10,
-    num_cols=20,
-    horizontal_scale=0.1,
-    vertical_scale=0.005,
-    slope_threshold=0.75,
-    use_cache=False,
-    sub_terrains={
-        # "pyramid_stairs": terrain_gen.MeshPyramidStairsTerrainCfg(
-        #     proportion=0.2,
-        #     step_height_range=(0.05, 0.2),
-        #     step_width=0.3,
-        #     platform_width=3.0,
-        #     border_width=1.0,
-        #     holes=False,
-        # ),
-        # "pyramid_stairs_inv": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
-        #     proportion=0.2,
-        #     step_height_range=(0.05, 0.2),
-        #     step_width=0.3,
-        #     platform_width=3.0,
-        #     border_width=1.0,
-        #     holes=False,
-        # ),
-        # "boxes": terrain_gen.MeshRandomGridTerrainCfg(
-        #     proportion=0.2, grid_width=0.45, grid_height_range=(0.05, 0.1), platform_width=2.0
-        # ),
-        "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=0.4),
-        "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
-            proportion=0.4, noise_range=(0.01, 0.06), noise_step=0.01, border_width=0.25
-        ),
-        # "gaps": terrain_gen.MeshGapTerrainCfg(
-        #     proportion=0.1, gap_width_range=(0.5, 1.0), platform_width=2.0
-        # ),
-        # "hf_pyramid_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
-        #     proportion=0.1, slope_range=(0.0, 0.02), platform_width=2.0, border_width=0.25
-        # ),
-        # "hf_pyramid_slope_inv": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
-        #     proportion=0.1, slope_range=(0.0, 0.2), platform_width=2.0, border_width=0.25 ),
-    },
-)
-
+from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG
+from ...terrains import FLAT_TERRAINS_CFG
 
 ##
 # Scene definition
@@ -170,7 +37,7 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
     terrain = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="generator",
-        terrain_generator=ALIENGO_BASE_TERRAINS_CFG,
+        terrain_generator=FLAT_TERRAINS_CFG,
         max_init_terrain_level=2,
         collision_group=-1,
         physics_material=sim_utils.RigidBodyMaterialCfg(
@@ -188,7 +55,7 @@ class AlienGoSceneCfg(InteractiveSceneCfg):
     )
 
     # robots
-    robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    robot: ArticulationCfg = UNITREE_ALIENGO_DCMOTOR_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # sensors
     height_scanner = RayCasterCfg(

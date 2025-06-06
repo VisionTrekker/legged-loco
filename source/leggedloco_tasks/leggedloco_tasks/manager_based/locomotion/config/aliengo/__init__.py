@@ -1,71 +1,70 @@
 import gymnasium as gym
 
-from .aliengo_low_base_cfg import AlienGoBaseRoughEnvCfg, AlienGoBaseRoughEnvCfg_PLAY, AlienGoRoughPPORunnerCfg
-from .aliengo_low_base_lidar_cfg import AlienGoBaseLidarRoughEnvCfg, AlienGoBaseLidarRoughEnvCfg_PLAY
-from .aliengo_low_vision_cfg import AlienGoVisionRoughEnvCfg, AlienGoVisionRoughEnvCfg_PLAY, AlienGoVisionRoughPPORunnerCfg
+from . import agents
+
 
 ##
 # Register Gym environments.
 ##
 
 gym.register(
-    id="aliengo_base",
+    id="LeggedLoco-AlienGo-Flat",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": AlienGoBaseRoughEnvCfg,
-        "rsl_rl_cfg_entry_point": AlienGoRoughPPORunnerCfg,
+        "env_cfg_entry_point": f"{__name__}.aliengo_low_base_cfg:AlienGoBaseRoughEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
     },
 )
 
 gym.register(
-    id="aliengo_base_play",
+    id="LeggedLoco-AlienGo-Flat-Play",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": AlienGoBaseRoughEnvCfg_PLAY,
-        "rsl_rl_cfg_entry_point": AlienGoRoughPPORunnerCfg,
-    },
-)
-
-
-gym.register(
-    id="aliengo_base_lidar",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": AlienGoBaseLidarRoughEnvCfg,
-        "rsl_rl_cfg_entry_point": AlienGoRoughPPORunnerCfg,
-    },
-)
-
-gym.register(
-    id="aliengo_base_lidar_play",
-    entry_point="isaaclab.envs:ManagerBasedRLEnv",
-    disable_env_checker=True,
-    kwargs={
-        "env_cfg_entry_point": AlienGoBaseLidarRoughEnvCfg_PLAY,
-        "rsl_rl_cfg_entry_point": AlienGoRoughPPORunnerCfg,
+        "env_cfg_entry_point": f"{__name__}.aliengo_low_base_cfg:AlienGoBaseRoughEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
     },
 )
 
 
 gym.register(
-    id="aliengo_vision",
+    id="LeggedLoco-AlienGo-Flat-Lidar",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": AlienGoVisionRoughEnvCfg,
-        "rsl_rl_cfg_entry_point": AlienGoVisionRoughPPORunnerCfg,
+        "env_cfg_entry_point": f"{__name__}.aliengo_low_base_lidar_cfg:AlienGoBaseLidarRoughEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
     },
 )
 
 gym.register(
-    id="aliengo_vision_play",
+    id="LeggedLoco-AlienGo-Flat-Lidar-Play",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": AlienGoVisionRoughEnvCfg_PLAY,
-        "rsl_rl_cfg_entry_point": AlienGoVisionRoughPPORunnerCfg,
+        "env_cfg_entry_point": f"{__name__}.aliengo_low_base_lidar_cfg:AlienGoBaseLidarRoughEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
+    },
+)
+
+
+gym.register(
+    id="LeggedLoco-AlienGo-Rough-Lidar",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.aliengo_low_vision_cfg:AlienGoVisionRoughEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoVisionRoughPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="LeggedLoco-AlienGo-Rough-Lidar-Play",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.aliengo_low_vision_cfg:AlienGoVisionRoughEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoVisionRoughPPORunnerCfg",
     },
 )

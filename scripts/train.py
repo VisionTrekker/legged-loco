@@ -8,6 +8,7 @@
 """Launch Isaac Sim Simulator first."""
 
 import argparse
+import sys
 
 from isaaclab.app import AppLauncher
 
@@ -38,11 +39,14 @@ parser.add_argument("--load_experiment", type=str, default=None, help="The first
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
-args_cli = parser.parse_args()
+args_cli, hydra_args = parser.parse_known_args()
 
 # always enable cameras to record video
 if args_cli.video:
     args_cli.enable_cameras = True
+
+# clear out sys.argv for Hydra
+sys.argv = [sys.argv[0]] + hydra_args
 
 # launch omniverse app
 app_launcher = AppLauncher(args_cli)
@@ -62,9 +66,9 @@ from isaaclab.envs import ManagerBasedRLEnvCfg
 from isaaclab.utils.dict import print_dict
 from isaaclab.utils.io import dump_pickle, dump_yaml
 
-import isaaclab_tasks  # noqa: F401
-from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
 from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper
+
+import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
 
 # from omni.isaac.viplanner.config import H1RoughEnvCfg, H1BaseRoughEnvCfg, H12DoFRoughEnvCfg, H1VisionRoughEnvCfg, G1VisionRoughEnvCfg
