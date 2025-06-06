@@ -10,11 +10,11 @@ from isaaclab_rl.rsl_rl import (
 )
 
 @configclass
-class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+class AlienGoFlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
     max_iterations = 5000
     save_interval = 200
-    experiment_name = "aliengo_base"
+    experiment_name = "aliengo_flat"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
@@ -39,8 +39,8 @@ class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
 
 
 @configclass
-class AlienGoVisionRoughPPORunnerCfg(AlienGoRoughPPORunnerCfg):
+class AlienGoRoughPPORunnerCfg(AlienGoFlatPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.experiment_name = "aliengo_vision"
+        self.experiment_name = "aliengo_rough"

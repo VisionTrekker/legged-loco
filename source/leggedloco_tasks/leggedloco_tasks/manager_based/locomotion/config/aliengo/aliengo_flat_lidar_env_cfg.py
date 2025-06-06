@@ -23,14 +23,7 @@ from isaaclab.envs import ManagerBasedRLEnvCfg
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, TerminationsCfg, CommandsCfg
 import os
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
-##
-# Pre-defined configs
-##
-from isaaclab_rl.rsl_rl import (
-    RslRlOnPolicyRunnerCfg,
-    RslRlPpoActorCriticCfg,
-    RslRlPpoAlgorithmCfg,
-)
+
 
 from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG
 from ...terrains import FLAT_TERRAINS_CFG
@@ -41,7 +34,7 @@ from .aliengo_low_base_cfg import CustomAlienGoTerminationsCfg, EventCfg
 # Scene definition
 ##
 @configclass
-class AlienGoSceneCfg(InteractiveSceneCfg):
+class AlienGoFlatSceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a legged robot."""
 
     # ground terrain
@@ -242,10 +235,10 @@ class ObservationsCfg:
 
 
 @configclass
-class AlienGoBaseLidarRoughEnvCfg(ManagerBasedRLEnvCfg):
+class AlienGoFlatLidarEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
 
-    scene: AlienGoSceneCfg = AlienGoSceneCfg(num_envs=4096, env_spacing=2.5)
+    scene: AlienGoFlatSceneCfg = AlienGoFlatSceneCfg(num_envs=4096, env_spacing=2.5)
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
     commands: CommandsCfg = CommandsCfg()
@@ -334,7 +327,7 @@ class AlienGoBaseLidarRoughEnvCfg(ManagerBasedRLEnvCfg):
 
 
 @configclass
-class AlienGoBaseLidarRoughEnvCfg_PLAY(AlienGoBaseLidarRoughEnvCfg):
+class AlienGoFlatLidarEnvCfg_PLAY(AlienGoFlatLidarEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

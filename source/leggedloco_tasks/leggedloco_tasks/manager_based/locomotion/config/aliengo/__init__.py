@@ -12,8 +12,8 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.aliengo_low_base_cfg:AlienGoBaseRoughEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
+        "env_cfg_entry_point": f"{__name__}.aliengo_flat_env_cfg:AlienGoFlatEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoFlatPPORunnerCfg",
     },
 )
 
@@ -22,8 +22,8 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.aliengo_low_base_cfg:AlienGoBaseRoughEnvCfg_PLAY",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
+        "env_cfg_entry_point": f"{__name__}.aliengo_flat_env_cfg:AlienGoFlatEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoFlatPPORunnerCfg",
     },
 )
 
@@ -33,8 +33,8 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.aliengo_low_base_lidar_cfg:AlienGoBaseLidarRoughEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
+        "env_cfg_entry_point": f"{__name__}.aliengo_flat_lidar_env_cfg:AlienGoFlatLidarEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoFlatPPORunnerCfg",
     },
 )
 
@@ -43,8 +43,8 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.aliengo_low_base_lidar_cfg:AlienGoBaseLidarRoughEnvCfg_PLAY",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
+        "env_cfg_entry_point": f"{__name__}.aliengo_flat_lidar_env_cfg:AlienGoFlatLidarEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoFlatPPORunnerCfg",
     },
 )
 
@@ -54,8 +54,8 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.aliengo_low_vision_cfg:AlienGoVisionRoughEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoVisionRoughPPORunnerCfg",
+        "env_cfg_entry_point": f"{__name__}.aliengo_rough_lidar_env_cfg:AlienGoRoughLidarEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
     },
 )
 
@@ -64,7 +64,7 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.aliengo_low_vision_cfg:AlienGoVisionRoughEnvCfg_PLAY",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoVisionRoughPPORunnerCfg",
+        "env_cfg_entry_point": f"{__name__}.aliengo_rough_lidar_env_cfg:AlienGoRoughLidarEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
     },
 )
