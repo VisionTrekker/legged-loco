@@ -245,8 +245,8 @@ class AlienGoRoughLidarEnvCfg(ManagerBasedRLEnvCfg):
 
         # scale the terrains for aliengo
         # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.02, 0.06)
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.02
 
         # reduce action scale
         self.actions.joint_pos.scale = 0.5

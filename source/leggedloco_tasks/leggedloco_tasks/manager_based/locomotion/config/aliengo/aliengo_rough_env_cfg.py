@@ -21,7 +21,7 @@ import os
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
 
 from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DELAYEDPD_CFG as UNITREE_ALIENGO_CFG
-from ...terrains import ROUGH_TERRAINS_CFG
+from ...terrains import ROUGH_BLIND_TERRAINS_CFG
 
 ##
 # Scene definition
@@ -34,7 +34,7 @@ class AlienGoRoughSceneCfg(InteractiveSceneCfg):
     terrain = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="generator",
-        terrain_generator=ROUGH_TERRAINS_CFG,
+        terrain_generator=ROUGH_BLIND_TERRAINS_CFG,
         max_init_terrain_level=2,
         collision_group=-1,
         physics_material=sim_utils.RigidBodyMaterialCfg(
@@ -326,8 +326,8 @@ class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
 
         # scale the terrains for aliengo
         # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.02, 0.06)
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.02
 
         # reduce action scale
         self.actions.joint_pos.scale = 0.5
