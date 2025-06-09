@@ -75,13 +75,13 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     # Blind
     python scripts/train.py --task LeggedLoco-AlienGo-Rough --history_len 9 --run_name blind --max_iterations 3000 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar --history_len 9 --run_name lidar --max_iterations 3000 --save_interval 200 --headless 
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar --history_len 9 --run_name lidar --max_iterations 3000 --save_interval 200 --headless
     ```
 * Two stage
     ```shell
     # Blind
-    python scripts/train.py --task LeggedLoco-AlienGo-Rough --history_len 9 --run_name blind_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-04_14-00-01_blind_jump" --max_iterations 2600 --save_interval 200 --headless  
-  # With 360 lidar
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough --history_len 9 --run_name blind_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-04_14-00-01_blind_jump" --max_iterations 2600 --save_interval 200 --headless
+    # With 360 lidar
     python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar --history_len 9 --run_name lidar_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-04_11-42-50_lidar" --max_iterations 2600 --save_interval 200 --headless
     ```
 
@@ -89,11 +89,11 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 ### Test
 * 
     ```shell
-    python scripts/play.py --task TASK_ID --history_len 9 --load_run RUN_NAME
+    python scripts/play.py --task TASK_ID-Play --history_len 9 --load_run RUN_NAME
     ```
 *   For Saving video
     ```shell
-    python scripts/play.py --task TASK_ID --history_len 9 --load_run RUN_NAME --headless --video
+    python scripts/play.py --task TASK_ID-Play --history_len 9 --load_run RUN_NAME --headless --video
     ```
 
 ## Add New Environments

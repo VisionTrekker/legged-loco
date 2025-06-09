@@ -401,6 +401,18 @@ class AlienGoRoughEnvCfg_PLAY(AlienGoRoughEnvCfg):
             self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.16)
             self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.16)
 
+        self.events.reset_base.params = {
+            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.0, 0.0)},
+            "velocity_range": {
+                "x": (0.0, 0.0),
+                "y": (0.0, 0.0),
+                "z": (0.0, 0.0),
+                "roll": (0.0, 0.0),
+                "pitch": (0.0, 0.0),
+                "yaw": (0.0, 0.0),
+            },
+        }
+
         # disable randomization for play
         self.observations.policy.enable_corruption = False
         # remove random pushing event
@@ -411,4 +423,4 @@ class AlienGoRoughEnvCfg_PLAY(AlienGoRoughEnvCfg):
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)
+        self.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
