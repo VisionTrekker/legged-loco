@@ -15,12 +15,12 @@ from isaaclab.actuators import ImplicitActuatorCfg, DelayedPDActuatorCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR#, ROBOT_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.envs import ManagerBasedRLEnvCfg
-from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, TerminationsCfg, CommandsCfg
+from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, TerminationsCfg, CommandsCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 import os
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
 
-from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG
+from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG as UNITREE_ALIENGO_CFG
 from ...terrains import ROUGH_TERRAINS_CFG
 
 ##
@@ -52,7 +52,7 @@ class AlienGoRoughSceneCfg(InteractiveSceneCfg):
     )
 
     # robots
-    robot: ArticulationCfg = UNITREE_ALIENGO_DCMOTOR_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    robot: ArticulationCfg = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # sensors
     height_scanner = RayCasterCfg(
