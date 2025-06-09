@@ -25,7 +25,7 @@ import os
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
 
 
-from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG as UNITREE_ALIENGO_CFG
+from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DELAYEDPD_CFG as UNITREE_ALIENGO_CFG
 from ...terrains import FLAT_TERRAINS_CFG
 from .aliengo_flat_env_cfg import CustomAlienGoTerminationsCfg, EventCfg
 

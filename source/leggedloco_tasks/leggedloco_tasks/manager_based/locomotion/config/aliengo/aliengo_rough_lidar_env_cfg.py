@@ -20,8 +20,9 @@ from isaaclab.managers import TerminationTermCfg as DoneTerm
 import os
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
 
-from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG as UNITREE_ALIENGO_CFG
+from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DELAYEDPD_CFG as UNITREE_ALIENGO_CFG
 from ...terrains import ROUGH_TERRAINS_CFG
+from .aliengo_rough_env_cfg import CustomAlienGoTerminationsCfg, EventCfg
 
 ##
 # Scene definition
@@ -126,16 +127,6 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
         },
     )
 
-@configclass
-class CustomAlienGoTerminationsCfg(TerminationsCfg):
-    """Termination terms for the MDP."""
-
-    time_out = DoneTerm(func=mdp.time_out, time_out=True)
-    base_contact = DoneTerm(
-        func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["trunk"]), "threshold": 1.0},
-    )
-
 
 ##
 # Observations
@@ -222,91 +213,6 @@ class ObservationsCfg:
     policy: PolicyCfg = PolicyCfg()
     proprio: ProprioCfg = ProprioCfg()
     critic: CriticObsCfg = CriticObsCfg()
-
-
-##
-# Events (for domain randomization)
-##
-@configclass
-class EventCfg:
-    """Configuration for events."""
-
-    # startup
-    physics_material = EventTerm(
-        func=mdp.randomize_rigid_body_material,
-        mode="startup",
-        params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.2, 0.8),
-            "dynamic_friction_range": (0.1, 0.6),
-            "restitution_range": (0.0, 0.0),
-            "num_buckets": 64,
-        },
-    )
-
-    add_base_mass = EventTerm(
-        func=mdp.randomize_rigid_body_mass,
-        mode="startup",
-        params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="trunk"),
-            "mass_distribution_params": (-5.0, 5.0),
-            "operation": "add",
-        },
-    )
-
-    actuator_gains = EventTerm(
-        func=mdp.randomize_actuator_gains,
-        mode="startup",
-        params={
-            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
-            "stiffness_distribution_params": (0.8, 1.2),
-            "operation": "scale",
-        },
-    )
-
-    # reset
-    base_external_force_torque = EventTerm(
-        func=mdp.apply_external_force_torque,
-        mode="reset",
-        params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="trunk"),
-            "force_range": (0.0, 0.0),
-            "torque_range": (-0.0, 0.0),
-        },
-    )
-
-    reset_base = EventTerm(
-        func=mdp.reset_root_state_uniform,
-        mode="reset",
-        params={
-            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
-            "velocity_range": {
-                "x": (-0.5, 0.5),
-                "y": (-0.5, 0.5),
-                "z": (-0.5, 0.5),
-                "roll": (-0.5, 0.5),
-                "pitch": (-0.5, 0.5),
-                "yaw": (-0.5, 0.5),
-            },
-        },
-    )
-
-    reset_robot_joints = EventTerm(
-        func=mdp.reset_joints_by_scale,
-        mode="reset",
-        params={
-            "position_range": (0.5, 1.5),
-            "velocity_range": (0.0, 0.0),
-        },
-    )
-
-    # interval
-    push_robot = EventTerm(
-        func=mdp.push_by_setting_velocity,
-        mode="interval",
-        interval_range_s=(8.0, 12.0),
-        params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
-    )
 
 
 @configclass

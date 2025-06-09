@@ -35,15 +35,16 @@ ALIENGO_ACTUATOR_DELAYEDPD_CFG = DelayedPDActuatorCfg(
     damping=2.0,
     friction=0.0,
     min_delay=4,
-    max_delay=4,
+    max_delay=6,
 )
 
 ALIENGO_ACTUATOR_IMPLICIT_CFG = ImplicitActuatorCfg(
     joint_names_expr=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"],
-    effort_limit=55.0,
-    velocity_limit=20.0,
-    stiffness=40.0,
-    damping=2.0,
+    effort_limit_sim=55.0,  # 如果为 None, 对于隐式执行器，设置为USD中关节prim的值；对于显式执行器，设置为1.0e9
+    velocity_limit_sim=20.0,  # 如果为 None, 对于隐式 或 显式执行器，设置为USD中关节prim的值
+    stiffness=40.0,  # 如果为 None, 设置为USD中关节prim的值
+    damping=2.0,  # 如果为 None, 设置为USD中关节prim的值
+    friction=0.0,  # 如果为 None, 设置为USD中关节prim的值
 )
 
 
@@ -51,7 +52,7 @@ ALIENGO_ACTUATOR_IMPLICIT_CFG = ImplicitActuatorCfg(
 # Configuration
 ##
 
-UNITREE_ALIENGO_DCMOTOR_CFG = ArticulationCfg(
+UNITREE_ALIENGO_BASE_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         # usd_path=f"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.1/Isaac/Robots/Unitree/aliengo/aliengo.usd",
         usd_path=f"{os.getenv('USER_PATH_TO_USD')}/robots/aliengo/aliengo.usd",
@@ -81,20 +82,23 @@ UNITREE_ALIENGO_DCMOTOR_CFG = ArticulationCfg(
         joint_vel={".*": 0.0},
     ),
     soft_joint_pos_limit_factor=0.9,
-    actuators={
-        "base_legs": ALIENGO_ACTUATOR_DCMOTOR_CFG,
-    },
+    actuators={},
+)
+
+
+UNITREE_ALIENGO_DCMOTOR_CFG = UNITREE_ALIENGO_BASE_CFG.replace(
+    actuators={"base_legs": ALIENGO_ACTUATOR_DCMOTOR_CFG},
 )
 """Configuration of Unitree AlienGo using DC-Motor actuator model."""
 
 
-UNITREE_ALIENGO_DELAYEDPD_CFG = UNITREE_ALIENGO_DCMOTOR_CFG.replace(
+UNITREE_ALIENGO_DELAYEDPD_CFG = UNITREE_ALIENGO_BASE_CFG.replace(
     actuators={"base_legs": ALIENGO_ACTUATOR_DELAYEDPD_CFG}
 )
 """Configuration of Unitree AlienGo using DelayedPD actuator model."""
 
 
-UNITREE_ALIENGO_IMPLICIT_CFG = UNITREE_ALIENGO_DCMOTOR_CFG.replace(
+UNITREE_ALIENGO_IMPLICIT_CFG = UNITREE_ALIENGO_BASE_CFG.replace(
     actuators={"base_legs": ALIENGO_ACTUATOR_IMPLICIT_CFG}
 )
 """Configuration of Unitree AlienGo using Implicit actuator model."""

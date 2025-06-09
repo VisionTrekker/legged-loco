@@ -23,7 +23,7 @@ from isaaclab.managers import TerminationTermCfg as DoneTerm
 import os
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
 
-from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG as UNITREE_ALIENGO_CFG
+from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DELAYEDPD_CFG as UNITREE_ALIENGO_CFG
 from ...terrains import FLAT_TERRAINS_CFG
 
 ##
@@ -83,7 +83,6 @@ class AlienGoFlatSceneCfg(InteractiveSceneCfg):
 ##
 @configclass
 class CustomAlienGoRewardsCfg(RewardsCfg):
-    # 关节位置 与 默认关节位置的 L1偏差
     feet_air_time = RewTerm(
         func=mdp.air_time_reward,
         weight=1.0,
@@ -94,6 +93,7 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
             "velocity_threshold": 0.5,
         }
     )
+    # 关节位置 与 默认关节位置的 L1偏差
     hip_deviation = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.4,
