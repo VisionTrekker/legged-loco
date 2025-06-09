@@ -7,6 +7,8 @@ from . import agents
 # Register Gym environments.
 ##
 
+
+# --- Flat
 gym.register(
     id="LeggedLoco-AlienGo-Flat",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
@@ -45,6 +47,28 @@ gym.register(
     kwargs={
         "env_cfg_entry_point": f"{__name__}.aliengo_flat_lidar_env_cfg:AlienGoFlatLidarEnvCfg_PLAY",
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoFlatPPORunnerCfg",
+    },
+)
+
+
+# --- Rough (stairs)
+gym.register(
+    id="LeggedLoco-AlienGo-Rough",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.aliengo_rough_env_cfg:AlienGoRoughEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="LeggedLoco-AlienGo-Rough-Play",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.aliengo_rough_env_cfg:AlienGoRoughEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
     },
 )
 

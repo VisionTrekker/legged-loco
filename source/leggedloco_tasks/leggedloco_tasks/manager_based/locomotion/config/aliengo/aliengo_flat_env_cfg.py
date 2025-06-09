@@ -138,6 +138,7 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
 ##
 # Terminations
 ##
+@configclass
 class CustomAlienGoTerminationsCfg(TerminationsCfg):
     """Termination terms for the MDP."""
 
@@ -177,7 +178,6 @@ class ObservationsCfg:
             self.enable_corruption = True
             self.concatenate_terms = True
 
-    
     @configclass
     class ProprioCfg(ObsGroup):
         """Observations for proprioceptive group."""
@@ -243,7 +243,7 @@ class EventCfg:
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
             "static_friction_range": (0.2, 0.8),
-            "dynamic_friction_range": (0.1, 0.6),
+            "dynamic_friction_range": (0.2, 0.6),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },

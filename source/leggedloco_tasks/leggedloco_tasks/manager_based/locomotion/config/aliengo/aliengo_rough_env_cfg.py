@@ -27,7 +27,7 @@ from ...terrains import ROUGH_TERRAINS_CFG
 # Scene definition
 ##
 @configclass
-class AlienGoVisionSceneCfg(InteractiveSceneCfg):
+class AlienGoRoughSceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a legged robot."""
 
     # ground terrain
@@ -60,16 +60,6 @@ class AlienGoVisionSceneCfg(InteractiveSceneCfg):
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-        debug_vis=False,
-        mesh_prim_paths=["/World/ground"],
-    )
-    lidar_sensor = RayCasterCfg(
-        prim_path="{ENV_REGEX_NS}/Robot/base",
-        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.05), rot=(1.0, 0.0, 0.0, 0.0)),
-        attach_yaw_only=False,
-        pattern_cfg=patterns.LidarPatternCfg(
-            channels=32, vertical_fov_range=(-7.0, 52.0), horizontal_fov_range=(-180, 180.0), horizontal_res=1.3
-        ),
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
@@ -126,6 +116,10 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
         },
     )
 
+
+##
+# Terminations
+##
 @configclass
 class CustomAlienGoTerminationsCfg(TerminationsCfg):
     """Termination terms for the MDP."""
@@ -161,13 +155,6 @@ class ObservationsCfg:
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
         actions = ObsTerm(func=mdp.last_action)
-
-        height_scan = ObsTerm(
-            func=mdp.height_map_lidar,
-            params={"sensor_cfg": SceneEntityCfg("lidar_sensor"), "offset": 0.0},
-            clip=(-10.0, 10.0),
-            noise=Unoise(n_min=-0.02, n_max=0.02),
-        )
 
         def __post_init__(self):
             self.enable_corruption = True
@@ -238,7 +225,7 @@ class EventCfg:
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
             "static_friction_range": (0.2, 0.8),
-            "dynamic_friction_range": (0.1, 0.6),
+            "dynamic_friction_range": (0.2, 0.6),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -310,10 +297,10 @@ class EventCfg:
 
 
 @configclass
-class AlienGoVisionRoughEnvCfg(ManagerBasedRLEnvCfg):
+class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
 
-    scene: AlienGoVisionSceneCfg = AlienGoVisionSceneCfg(num_envs=4096, env_spacing=2.5)
+    scene: AlienGoRoughSceneCfg = AlienGoRoughSceneCfg(num_envs=4096, env_spacing=2.5)
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
     commands: CommandsCfg = CommandsCfg()
@@ -384,7 +371,6 @@ class AlienGoVisionRoughEnvCfg(ManagerBasedRLEnvCfg):
         # update sensor periods
         self.scene.contact_forces.update_period = self.sim.dt
         self.scene.height_scanner.update_period = self.sim.dt * self.decimation
-        self.scene.lidar_sensor.update_period = self.sim.dt * self.decimation
 
         # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
         # this generates terrains with increasing difficulty and is useful for training
@@ -397,7 +383,7 @@ class AlienGoVisionRoughEnvCfg(ManagerBasedRLEnvCfg):
 
 
 @configclass
-class AlienGoVisionRoughEnvCfg_PLAY(AlienGoVisionRoughEnvCfg):
+class AlienGoRoughEnvCfg_PLAY(AlienGoRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

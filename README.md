@@ -52,31 +52,49 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 
 
 ## Usage
-### train
-* base (flat terrain)
+### Available Environments
+*
     ```shell
-    # height_scan
-    python scripts/train.py --task=aliengo_base --history_len=9 --run_name=flat_heightscan --max_iterations=2000 --save_interval=200 --headless
-    
-    # 360 lidar
-    python scripts/train.py --task=aliengo_base_lidar --history_len=9 --run_name=flat_lidar --max_iterations=2000 --save_interval=200 --headless
-    ```
-* vision (stairs terrain)
-    ```shell
-    # scratch
-    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs --max_iterations=2600 --save_interval=200 --headless
-    
-    # two stage
-    python scripts/train.py --task=aliengo_vision --history_len=9 --run_name=stairs_loadflat --resume True --load_experiment aliengo_base --load_run="2025-06-04_11-42-50_flat_lidar" --max_iterations=3000 --save_interval=200 --headless
+    python scripts/list_envs.py
     ```
 
-### test
+
+### Train
+#### Flat terrain
+*
+    ```shell
+    # Blind
+    python scripts/train.py --task LeggedLoco-AlienGo-Flat --history_len 9 --run_name blind --max_iterations 2000 --save_interval 200 --headless
+    # With 360 lidar
+    python scripts/train.py --task LeggedLoco-AlienGo-Flat-Lidar --history_len 9 --run_name lidar --max_iterations 2000 --save_interval 200 --headless
+    ```
+
+#### Rough (stairs) terrain
+* Scratch
+    ```shell
+    # Blind
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough --history_len 9 --run_name blind --max_iterations 3000 --save_interval 200 --headless
+    # With 360 lidar
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar --history_len 9 --run_name lidar --max_iterations 3000 --save_interval 200 --headless 
+    ```
+* Two stage
+    ```shell
+    # Blind
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough --history_len 9 --run_name blind_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-04_14-00-01_blind_jump" --max_iterations 2600 --save_interval 200 --headless  
+  # With 360 lidar
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar --history_len 9 --run_name lidar_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-04_11-42-50_lidar" --max_iterations 2600 --save_interval 200 --headless
+    ```
+
+
+### Test
 * 
     ```shell
-    python scripts/play.py --task=aliengo_base_play --history_len=9 --load_run=RUN_NAME
+    python scripts/play.py --task TASK_ID --history_len 9 --load_run RUN_NAME
     ```
-
-    Use `--headless` to enable headless mode. Add `--video` for headless rendering and video saving.
+*   For Saving video
+    ```shell
+    python scripts/play.py --task TASK_ID --history_len 9 --load_run RUN_NAME --headless --video
+    ```
 
 ## Add New Environments
 You can add additional environments by placing them under `/source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/config`.
