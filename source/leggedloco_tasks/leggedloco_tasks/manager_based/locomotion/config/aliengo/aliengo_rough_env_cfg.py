@@ -2,22 +2,20 @@ import platform
 from isaaclab.utils import configclass
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
-from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import SceneEntityCfg
-from isaaclab.terrains import TerrainImporterCfg, TerrainGeneratorCfg, FlatPatchSamplingCfg
+from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns, RayCasterCameraCfg
-from isaaclab.actuators import ImplicitActuatorCfg, DelayedPDActuatorCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR#, ROBOT_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.envs import ManagerBasedRLEnvCfg
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, TerminationsCfg, CommandsCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
-import os
+
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
 
 from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DELAYEDPD_CFG as UNITREE_ALIENGO_CFG
@@ -121,7 +119,7 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
 # Terminations
 ##
 @configclass
-class CustomAlienGoTerminationsCfg(TerminationsCfg):
+class CustomAlienGoTerminationsCfg:
     """Termination terms for the MDP."""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
