@@ -55,8 +55,8 @@ from isaaclab_rl.rsl_rl import (
     RslRlVecEnvWrapper,
 )
 
-from omni.isaac.leggedloco.config import *
-from omni.isaac.leggedloco.utils import RslRlVecEnvHistoryWrapper, ASSETS_DIR
+from leggedloco_tasks.manager_based.locomotion.config import *
+from leggedloco_tasks.manager_based.locomotion.utils import RslRlVecEnvHistoryWrapper, ASSETS_DIR
 
 class Planner:
     def __init__(self, env_cfg, args_cli, simulation_app):

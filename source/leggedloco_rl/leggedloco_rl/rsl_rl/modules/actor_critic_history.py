@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from torch.distributions import Normal
 
-from rsl_rl.modules.actor_critic import get_activation
+from leggedloco_rl.rsl_rl.modules.actor_critic import get_activation
 
 
 class ActorHistory(nn.Module):

@@ -7,16 +7,16 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from rsl_rl.modules import ActorCritic, ActorCriticDepthCNN
-from rsl_rl.storage import RolloutStorage
+from leggedloco_rl.rsl_rl.modules import ActorCritic, ActorCriticDepthCNN
+from leggedloco_rl.rsl_rl.storage import RolloutStorage
 
 
 class PPO:
-    # actor_critic: ActorCritic | ActorCriticDepthCNN
+    policy: ActorCritic | ActorCriticDepthCNN
 
     def __init__(
         self,
-        actor_critic,
+        policy,
         num_learning_epochs=1,
         num_mini_batches=1,
         clip_param=0.2,
@@ -30,6 +30,11 @@ class PPO:
         schedule="fixed",
         desired_kl=0.01,
         device="cpu",
+        normalize_advantage_per_mini_batch=False,
+        # RND parameters
+        rnd_cfg: dict | None = None,
+        # Symmetry parameters
+        symmetry_cfg: dict | None = None,
     ):
         self.device = device
 
@@ -38,10 +43,12 @@ class PPO:
         self.learning_rate = learning_rate
 
         # PPO components
-        self.actor_critic = actor_critic
-        self.actor_critic.to(self.device)
-        self.storage = None  # initialized later
-        self.optimizer = optim.Adam(self.actor_critic.parameters(), lr=learning_rate)
+        self.policy = policy
+        self.policy.to(self.device)
+        # Create optimizer
+        self.optimizer = optim.Adam(self.policy.parameters(), lr=learning_rate)
+        # Create rollout storage
+        self.storage: RolloutStorage = None  # type: ignore
         self.transition = RolloutStorage.Transition()
 
         # PPO parameters
@@ -55,32 +62,41 @@ class PPO:
         self.max_grad_norm = max_grad_norm
         self.use_clipped_value_loss = use_clipped_value_loss
 
-    def init_storage(self, num_envs, num_transitions_per_env, actor_obs_shape, critic_obs_shape, action_shape):
+    def init_storage(
+        self, num_envs, num_transitions_per_env, actor_obs_shape, critic_obs_shape, actions_shape
+    ):
         self.storage = RolloutStorage(
-            num_envs, num_transitions_per_env, actor_obs_shape, critic_obs_shape, action_shape, self.device
+            num_envs,
+            num_transitions_per_env,
+            actor_obs_shape,
+            critic_obs_shape,
+            actions_shape,
+            self.device,
         )
 
     def test_mode(self):
-        self.actor_critic.test()
+        self.policy.test()
 
     def train_mode(self):
-        self.actor_critic.train()
+        self.policy.train()
 
     def act(self, obs, critic_obs):
-        if self.actor_critic.is_recurrent:
-            self.transition.hidden_states = self.actor_critic.get_hidden_states()
-        # Compute the actions and values
-        self.transition.actions = self.actor_critic.act(obs).detach()
-        self.transition.values = self.actor_critic.evaluate(critic_obs).detach()
-        self.transition.actions_log_prob = self.actor_critic.get_actions_log_prob(self.transition.actions).detach()
-        self.transition.action_mean = self.actor_critic.action_mean.detach()
-        self.transition.action_sigma = self.actor_critic.action_std.detach()
+        if self.policy.is_recurrent:
+            self.transition.hidden_states = self.policy.get_hidden_states()
+        # compute the actions and values
+        self.transition.actions = self.policy.act(obs).detach()
+        self.transition.values = self.policy.evaluate(critic_obs).detach()
+        self.transition.actions_log_prob = self.policy.get_actions_log_prob(self.transition.actions).detach()
+        self.transition.action_mean = self.policy.action_mean.detach()
+        self.transition.action_sigma = self.policy.action_std.detach()
         # need to record obs and critic_obs before env.step()
         self.transition.observations = obs
         self.transition.critic_observations = critic_obs
         return self.transition.actions
 
     def process_env_step(self, rewards, dones, infos):
+        # Record the rewards and dones
+        # Note: we clone here because later on we bootstrap the rewards based on timeouts
         self.transition.rewards = rewards.clone()
         self.transition.dones = dones
         # Bootstrapping on time outs
@@ -89,22 +105,30 @@ class PPO:
                 self.transition.values * infos["time_outs"].unsqueeze(1).to(self.device), 1
             )
 
-        # Record the transition
+        # record the transition
         self.storage.add_transitions(self.transition)
         self.transition.clear()
-        self.actor_critic.reset(dones)
+        self.policy.reset(dones)
 
     def compute_returns(self, last_critic_obs):
-        last_values = self.actor_critic.evaluate(last_critic_obs).detach()
-        self.storage.compute_returns(last_values, self.gamma, self.lam)
+        # compute value for the last step
+        last_values = self.policy.evaluate(last_critic_obs).detach()
+        self.storage.compute_returns(
+            last_values, self.gamma, self.lam
+        )
 
-    def update(self):
+    def update(self):  # noqa: C901
         mean_value_loss = 0
         mean_surrogate_loss = 0
-        if self.actor_critic.is_recurrent:
-            generator = self.storage.reccurent_mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
+        mean_entropy = 0
+
+        # generator for mini batches
+        if self.policy.is_recurrent:
+            generator = self.storage.recurrent_mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
         else:
             generator = self.storage.mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
+
+        # iterate over batches
         for (
             obs_batch,
             critic_obs_batch,
@@ -118,14 +142,22 @@ class PPO:
             hid_states_batch,
             masks_batch,
         ) in generator:
-            self.actor_critic.act(obs_batch, masks=masks_batch, hidden_states=hid_states_batch[0])
-            actions_log_prob_batch = self.actor_critic.get_actions_log_prob(actions_batch)
-            value_batch = self.actor_critic.evaluate(
-                critic_obs_batch, masks=masks_batch, hidden_states=hid_states_batch[1]
-            )
-            mu_batch = self.actor_critic.action_mean
-            sigma_batch = self.actor_critic.action_std
-            entropy_batch = self.actor_critic.entropy
+
+            # original batch size
+            original_batch_size = obs_batch.shape[0]
+
+            # Recompute actions log prob and entropy for current batch of transitions
+            # Note: we need to do this because we updated the policy with the new parameters
+            # -- actor
+            self.policy.act(obs_batch, masks=masks_batch, hidden_states=hid_states_batch[0])
+            actions_log_prob_batch = self.policy.get_actions_log_prob(actions_batch)
+            # -- critic
+            value_batch = self.policy.evaluate(critic_obs_batch, masks=masks_batch, hidden_states=hid_states_batch[1])
+            # -- entropy
+            # we only keep the entropy of the first augmentation (the original one)
+            mu_batch = self.policy.action_mean[:original_batch_size]
+            sigma_batch = self.policy.action_std[:original_batch_size]
+            entropy_batch = self.policy.entropy[:original_batch_size]
 
             # KL
             if self.desired_kl is not None and self.schedule == "adaptive":
@@ -139,11 +171,13 @@ class PPO:
                     )
                     kl_mean = torch.mean(kl)
 
+                    # Update the learning rate
                     if kl_mean > self.desired_kl * 2.0:
                         self.learning_rate = max(1e-5, self.learning_rate / 1.5)
                     elif kl_mean < self.desired_kl / 2.0 and kl_mean > 0.0:
                         self.learning_rate = min(1e-2, self.learning_rate * 1.5)
 
+                    # Update the learning rate for all parameter groups
                     for param_group in self.optimizer.param_groups:
                         param_group["lr"] = self.learning_rate
 
@@ -168,18 +202,34 @@ class PPO:
 
             loss = surrogate_loss + self.value_loss_coef * value_loss - self.entropy_coef * entropy_batch.mean()
 
-            # Gradient step
+            # Compute the gradients
+            # -- For PPO
             self.optimizer.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(self.actor_critic.parameters(), self.max_grad_norm)
+
+            # Apply the gradients
+            # -- For PPO
+            nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
             self.optimizer.step()
 
+            # Store the losses
             mean_value_loss += value_loss.item()
             mean_surrogate_loss += surrogate_loss.item()
+            mean_entropy += entropy_batch.mean().item()
 
+        # -- For PPO
         num_updates = self.num_learning_epochs * self.num_mini_batches
         mean_value_loss /= num_updates
         mean_surrogate_loss /= num_updates
+        mean_entropy /= num_updates
+        # -- Clear the storage
         self.storage.clear()
 
-        return mean_value_loss, mean_surrogate_loss
+        # construct the loss dictionary
+        loss_dict = {
+            "value_function": mean_value_loss,
+            "surrogate": mean_surrogate_loss,
+            "entropy": mean_entropy,
+        }
+
+        return loss_dict

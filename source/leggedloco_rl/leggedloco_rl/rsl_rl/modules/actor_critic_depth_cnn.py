@@ -4,10 +4,10 @@ import torch
 import torch.nn as nn
 from torch.distributions import Normal
 
-from rsl_rl.modules.actor_critic import get_activation
-from rsl_rl.modules.depth_backbone import DepthOnlyFCBackbone, DepthBackbone
-from rsl_rl.modules.actor_critic_recurrent import Memory
-from rsl_rl.utils import unpad_trajectories
+from leggedloco_rl.rsl_rl.modules.actor_critic import get_activation
+from leggedloco_rl.rsl_rl.modules.depth_backbone import DepthOnlyFCBackbone, DepthBackbone
+from leggedloco_rl.rsl_rl.modules.actor_critic_recurrent import Memory
+from leggedloco_rl.rsl_rl.utils import unpad_trajectories
 
 
 class ActorDepthCNN(nn.Module):
