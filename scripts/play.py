@@ -100,6 +100,7 @@ def main():
 
     # create isaac environment
     env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+    print("\n---------------------------------\n[INFO] ManagerBasedRLEnv 初始化完毕\n---------------------------------\n")
 
     # wrap for video recording
     if args_cli.video:
@@ -125,6 +126,7 @@ def main():
 
     # load previously trained model
     ppo_runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+    print("\n---------------------------------\n[INFO] OnPolicyRunner 初始化完毕\n---------------------------------\n")
     ppo_runner.load(resume_path)
 
     # obtain the trained policy for inference

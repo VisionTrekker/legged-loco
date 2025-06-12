@@ -64,10 +64,11 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
             obs_dict = self.unwrapped.observation_manager.compute()
         else:
             obs_dict = self.unwrapped._get_observations()
-        proprio_obs, obs = obs_dict["proprio"], obs_dict["policy"]
+        proprio_obs, obs = obs_dict["proprio"], obs_dict["policy"]  # (num_envs, 45), (num_envs, 45)
+        # (num_envs, 9, 45)
         self.proprio_obs_buf = torch.cat([proprio_obs.unsqueeze(1)] * self.history_length, dim=1)
-        proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)
-        curr_obs = torch.cat([obs, proprio_obs_history], dim=1)
+        proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)  # (num_envs, 9*45)
+        curr_obs = torch.cat([obs, proprio_obs_history], dim=1)  # (num_envs, 45 + 9*45)
         obs_dict["policy"] = curr_obs
 
         return curr_obs, {"observations": obs_dict}
@@ -76,11 +77,12 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
         # clip the actions (for testing only)
         actions = torch.clamp(actions, -self.clip_actions, self.clip_actions)
 
-        # record step information
+        # record step information (执行一个control步 (包含4个物理仿真步)，计算 奖励，计算新的 obs_dict)
         obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
         # compute dones for compatibility with RSL-RL
         dones = (terminated | truncated).to(dtype=torch.long)
         # move extra observations to the extras dict
+        # (num_envs, 45), (num_envs, 45)
         proprio_obs, obs = obs_dict["proprio"], obs_dict["policy"]
         # print("============== Height Map ==============")
         # print(obs_dict["test_height_map"])
@@ -91,6 +93,9 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
             extras["time_outs"] = truncated
 
         # update obsservation history buffer & reset the history buffer for done environments
+        # (num_envs, 9, 45)
+        # 新重置的 envs 对应位置为 全0的(9, 45)
+        # 不重置的 envs 对应位置为 8个旧本体观测 + 1个新本体观测
         self.proprio_obs_buf = torch.where(
             (self.episode_length_buf < 1)[:, None, None], 
             torch.stack([torch.zeros_like(proprio_obs)] * self.history_length, dim=1),
@@ -99,7 +104,8 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
                 proprio_obs.unsqueeze(1)
             ], dim=1)
         )
-        proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)
+        proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)  # (num_envs, 9*45)
+        # (num_envs, 45 + 9*45) : 新的观测 + 9个本体观测
         curr_obs = torch.cat([obs, proprio_obs_history], dim=1)
         extras["observations"]["policy"] = curr_obs
 

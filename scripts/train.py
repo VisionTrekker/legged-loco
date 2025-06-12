@@ -107,6 +107,7 @@ def main():
     if args_cli.max_iterations:
         agent_cfg.max_iterations = args_cli.max_iterations
 
+    print("\n---------------------------------\n[INFO] ManagerBasedRLEnv 开始创建\n---------------------------------\n")
     # create isaac environment （一般是调用 isaaclab/envs/manager_based_rl_env.py/ManagerBasedRLEnv()）
     env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
     print("\n---------------------------------\n[INFO] ManagerBasedRLEnv 初始化完毕\n---------------------------------\n")
@@ -129,8 +130,10 @@ def main():
     else:
         env = RslRlVecEnvWrapper(env)
 
+    print("\n---------------------------------\n[INFO] OnPolicyRunner 开始创建\n---------------------------------\n")
     # create runner from rsl-rl
     runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+    print("\n---------------------------------\n[INFO] OnPolicyRunner 初始化完毕\n---------------------------------\n")
     # write git state to logs
     runner.add_git_repo_to_log(__file__)
     # save resume path before creating a new log_dir

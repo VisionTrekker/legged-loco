@@ -32,14 +32,16 @@ class OnPolicyRunner:
         self.device = device
         self.env = env
         obs, extras = self.env.get_observations()
-        num_obs = obs.shape[1]
+        num_obs = obs.shape[1]  # 45 + 45*9 = 450
         if "critic" in extras["observations"]:
-            num_critic_obs = extras["observations"]["critic"].shape[1]
+            num_critic_obs = extras["observations"]["critic"].shape[1]  # 235
         else:
             num_critic_obs = num_obs
 
         if self.cfg.get("use_cnn", False):
-            num_actor_obs_prop = self.env.unwrapped.observation_manager.compute_group("proprio").shape[1]
+            print(f"[on_policy_runner] Using CNN model]")
+            num_actor_obs_prop = self.env.unwrapped.observation_manager.compute_group("proprio").shape[1]  # 45
+            print(f"[on_policy_runner] {num_actor_obs_prop * (self.policy_cfg.get('history_length', 0) + 1)}")
             self.policy_cfg["num_actor_obs_prop"] = num_actor_obs_prop * (self.policy_cfg.get("history_length", 0) + 1)
 
         # evaluate the policy class
@@ -59,9 +61,9 @@ class OnPolicyRunner:
         # initialize algorithm
         alg_class = eval(self.alg_cfg.pop("class_name"))  # PPO
         self.alg: PPO = alg_class(policy, device=self.device, **self.alg_cfg)
-        self.num_steps_per_env = self.cfg["num_steps_per_env"]
-        self.save_interval = self.cfg["save_interval"]
-        self.empirical_normalization = self.cfg["empirical_normalization"]
+        self.num_steps_per_env = self.cfg["num_steps_per_env"]  # 24
+        self.save_interval = self.cfg["save_interval"]  # 200
+        self.empirical_normalization = self.cfg["empirical_normalization"]  # False
         if self.empirical_normalization:
             self.obs_normalizer = EmpiricalNormalization(shape=[num_obs], until=1.0e8).to(self.device)
             self.critic_obs_normalizer = EmpiricalNormalization(shape=[num_critic_obs], until=1.0e8).to(self.device)
@@ -109,13 +111,15 @@ class OnPolicyRunner:
             else:
                 raise ValueError("Logger type not found. Please choose 'neptune', 'wandb' or 'tensorboard'.")
 
-        if init_at_random_ep_len:
+        if init_at_random_ep_len:  # True
             self.env.episode_length_buf = torch.randint_like(
                 self.env.episode_length_buf, high=int(self.env.max_episode_length)
             )
 
         # start learning
+        # (num_envs, 45 + 45*9)
         obs, extras = self.env.get_observations()
+        # (num_envs, 235)
         critic_obs = extras["observations"].get("critic", obs)
         obs, critic_obs = obs.to(self.device), critic_obs.to(self.device)
         self.train_mode()  # switch to train mode (for dropout for example)
@@ -134,10 +138,12 @@ class OnPolicyRunner:
             start = time.time()
             # Rollout
             with torch.inference_mode():
+                # 执行 num_steps_per_env 次 simulation step
                 for _ in range(self.num_steps_per_env):
-                    # Sample actions
+                    # Sample actions (执行PPO policy，计算一次actions)
                     actions = self.alg.act(obs, critic_obs)
-                    # Step the environment
+                    # Step the environment (执行一个control步 (包含4个物理仿真步)，计算 奖励，计算新的 obs)
+                    # obs: (num_envs, 45 + 9*45)
                     obs, rewards, dones, infos = self.env.step(actions.to(self.env.device))
                     # perform normalization
                     obs = self.obs_normalizer(obs)

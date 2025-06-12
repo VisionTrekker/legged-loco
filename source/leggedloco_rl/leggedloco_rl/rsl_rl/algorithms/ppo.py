@@ -17,17 +17,17 @@ class PPO:
     def __init__(
         self,
         policy,
-        num_learning_epochs=1,
-        num_mini_batches=1,
+        num_learning_epochs=1,  # 5
+        num_mini_batches=1,  # 4
         clip_param=0.2,
-        gamma=0.998,
-        lam=0.95,
+        gamma=0.998,  # 0.99
+        lam=0.95,  # 0.95
         value_loss_coef=1.0,
-        entropy_coef=0.0,
+        entropy_coef=0.0,  # 0.01
         learning_rate=1e-3,
         max_grad_norm=1.0,
         use_clipped_value_loss=True,
-        schedule="fixed",
+        schedule="fixed",  # "adaptive"
         desired_kl=0.01,
         device="cpu",
         normalize_advantage_per_mini_batch=False,
@@ -67,10 +67,10 @@ class PPO:
     ):
         self.storage = RolloutStorage(
             num_envs,
-            num_transitions_per_env,
-            actor_obs_shape,
-            critic_obs_shape,
-            actions_shape,
+            num_transitions_per_env,  # 24
+            actor_obs_shape,  # 45 + 45*9
+            critic_obs_shape,  # 235
+            actions_shape,  # 12
             self.device,
         )
 

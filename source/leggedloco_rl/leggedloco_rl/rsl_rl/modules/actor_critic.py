@@ -14,11 +14,11 @@ class ActorCritic(nn.Module):
 
     def __init__(
         self,
-        num_actor_obs,
-        num_critic_obs,
-        num_actions,
-        actor_hidden_dims=[256, 256, 256],
-        critic_hidden_dims=[256, 256, 256],
+        num_actor_obs,  # 45 + 45*9
+        num_critic_obs,  # 235
+        num_actions,  # 12
+        actor_hidden_dims=[256, 256, 256],  # [512, 256, 128]
+        critic_hidden_dims=[256, 256, 256],  # [512, 256, 128]
         activation="elu",
         init_noise_std=1.0,
         **kwargs,
