@@ -13,7 +13,7 @@ from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns, RayCaster
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR#, ROBOT_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.envs import ManagerBasedRLEnvCfg
-from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, TerminationsCfg, CommandsCfg
+from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import CurriculumCfg, RewardsCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 
 import leggedloco_tasks.manager_based.locomotion.mdp as mdp
@@ -86,8 +86,8 @@ class AlienGoRoughSceneCfg(InteractiveSceneCfg):
 ##
 # Rewards
 ##
-@configclass 
-class CustomAlienGoRewardsCfg(RewardsCfg):
+@configclass
+class AlienGoRewardsCfg(RewardsCfg):
     feet_air_time = RewTerm(
         func=mdp.air_time_reward,
         weight=1.0,
@@ -129,7 +129,7 @@ class CustomAlienGoRewardsCfg(RewardsCfg):
 # Terminations
 ##
 @configclass
-class CustomAlienGoTerminationsCfg:
+class AlienGoTerminationsCfg:
     """Termination terms for the MDP."""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
@@ -143,7 +143,7 @@ class CustomAlienGoTerminationsCfg:
 # Observations
 ##
 @configclass
-class ObservationsCfg:
+class AlienGoObservationsCfg:
     """Observation specifications for the MDP."""
 
     @configclass
@@ -151,14 +151,12 @@ class ObservationsCfg:
         """Observations for policy group."""
 
         # observation terms (order preserved)
-        # base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
-        # projected_gravity = ObsTerm(
-        #     func=mdp.projected_gravity,
-        #     noise=Unoise(n_min=-0.05, n_max=0.05),
-        # )
-        base_rpy = ObsTerm(func=mdp.base_rpy, noise=Unoise(n_min=-0.1, n_max=0.1))
-        
+        projected_gravity = ObsTerm(
+            func=mdp.projected_gravity,
+            noise=Unoise(n_min=-0.05, n_max=0.05),
+        )
+
         velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
@@ -180,20 +178,19 @@ class ObservationsCfg:
         """Observations for proprioceptive group."""
 
         # observation terms
-        # base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
-        # projected_gravity = ObsTerm(
-        #     func=mdp.projected_gravity,
-        #     noise=Unoise(n_min=-0.05, n_max=0.05),
-        # )
-        base_rpy = ObsTerm(func=mdp.base_rpy, noise=Unoise(n_min=-0.1, n_max=0.1))
-        
+        projected_gravity = ObsTerm(
+            func=mdp.projected_gravity,
+            noise=Unoise(n_min=-0.05, n_max=0.05),
+        )
+
         velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
+            self.enable_corruption = True
             self.concatenate_terms = True
 
     @configclass
@@ -225,12 +222,39 @@ class ObservationsCfg:
     proprio: ProprioCfg = ProprioCfg()
     critic: CriticObsCfg = CriticObsCfg()
 
+##
+# Actions
+##
+@configclass
+class AlienGoActionsCfg:
+    """Action specifications for the MDP."""
+
+    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=0.5, use_default_offset=True)
+
+##
+# Commands
+##
+@configclass
+class AlienGoCommandsCfg:
+    """Command specifications for the MDP."""
+
+    base_velocity = mdp.UniformVelocityCommandCfg(
+        asset_name="robot",
+        resampling_time_range=(10.0, 10.0),
+        rel_standing_envs=0.1,
+        rel_heading_envs=0.0,
+        heading_command=False,
+        debug_vis=True,
+        ranges=mdp.UniformVelocityCommandCfg.Ranges(
+            lin_vel_x=(-1.0, 1.0), lin_vel_y=(-1.0, 1.0), ang_vel_z=(-1.0, 1.0)
+        ),
+    )
 
 ##
 # Events (for domain randomization)
 ##
 @configclass
-class EventCfg:
+class AlienGoEventCfg:
     """Configuration for events."""
 
     # startup
@@ -239,8 +263,8 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.4, 0.8),
-            "dynamic_friction_range": (0.4, 0.6),
+            "static_friction_range": (0.6, 0.9),
+            "dynamic_friction_range": (0.6, 0.8),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -312,19 +336,19 @@ class EventCfg:
 
 
 @configclass
-class AlienGoRoughLidarEnvCfg(ManagerBasedRLEnvCfg):
+class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
 
     # environment settings
     scene: AlienGoRoughSceneCfg = AlienGoRoughSceneCfg(num_envs=4096, env_spacing=2.5)
-    observations: ObservationsCfg = ObservationsCfg()
-    actions: ActionsCfg = ActionsCfg()
-    events: EventCfg = EventCfg()
+    observations: AlienGoObservationsCfg = AlienGoObservationsCfg()
+    actions: AlienGoActionsCfg = AlienGoActionsCfg()
+    events: AlienGoEventCfg = AlienGoEventCfg()
     # MDP settings
-    rewards: RewardsCfg = CustomAlienGoRewardsCfg()
-    terminations: TerminationsCfg = CustomAlienGoTerminationsCfg()
+    rewards: AlienGoRewardsCfg = AlienGoRewardsCfg()
+    terminations: AlienGoTerminationsCfg = AlienGoTerminationsCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
-    commands: CommandsCfg = CommandsCfg()
+    commands: AlienGoCommandsCfg = AlienGoCommandsCfg()
 
     def __post_init__(self):
         """Post initialization."""
@@ -379,7 +403,7 @@ class AlienGoRoughLidarEnvCfg(ManagerBasedRLEnvCfg):
 
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (-0.1, 0.1)
         self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)
 
         # terminations
@@ -440,5 +464,5 @@ class AlienGoRoughLidarEnvCfg_PLAY(AlienGoRoughLidarEnvCfg):
 
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (-0.1, 0.1)
         self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)
