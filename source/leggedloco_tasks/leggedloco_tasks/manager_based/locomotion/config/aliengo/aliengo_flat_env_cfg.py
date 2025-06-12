@@ -317,24 +317,25 @@ class EventCfg:
 class AlienGoFlatEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
 
+    # environment settings
     scene: AlienGoFlatSceneCfg = AlienGoFlatSceneCfg(num_envs=4096, env_spacing=2.5)
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
-    commands: CommandsCfg = CommandsCfg()
+    events: EventCfg = EventCfg()
     # MDP settings
     rewards: RewardsCfg = CustomAlienGoRewardsCfg()
     terminations: TerminationsCfg = CustomAlienGoTerminationsCfg()
-    events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
+    commands: CommandsCfg = CommandsCfg()
 
     def __post_init__(self):
         """Post initialization."""
         # general settings
         self.decimation = 4
-        self.sim.render_interval = 4
         self.episode_length_s = 20.0
         # simulation settings
         self.sim.dt = 0.005
+        self.sim.render_interval = 4
         self.sim.disable_contact_processing = True
         self.sim.physics_material = self.scene.terrain.physics_material
         # self.sim.physics_material.static_friction = 1.0

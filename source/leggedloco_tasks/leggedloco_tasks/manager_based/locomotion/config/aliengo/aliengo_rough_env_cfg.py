@@ -298,29 +298,31 @@ class EventCfg:
 class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
 
+    # environment settings
     scene: AlienGoRoughSceneCfg = AlienGoRoughSceneCfg(num_envs=4096, env_spacing=2.5)
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
-    commands: CommandsCfg = CommandsCfg()
+    events: EventCfg = EventCfg()
     # MDP settings
     rewards: RewardsCfg = CustomAlienGoRewardsCfg()
     terminations: TerminationsCfg = CustomAlienGoTerminationsCfg()
-    events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
+    commands: CommandsCfg = CommandsCfg()
 
     def __post_init__(self):
         """Post initialization."""
         # general settings
         self.decimation = 4
         self.episode_length_s = 20.0
-        # simulation settings
+        # simulation settings (sim : isaaclab/sim/simlation_cfg.py/SimulationCfg())
         self.sim.dt = 0.005
+        self.sim.render_interval = 4  # 该数值可改变 渲染步长 = physics_dt * render_interval，一般需等于 decimation
         self.sim.disable_contact_processing = True
         self.sim.physics_material = self.scene.terrain.physics_material
-        self.sim.physics_material.static_friction = 1.0
-        self.sim.physics_material.dynamic_friction = 1.0
-        self.sim.physics_material.friction_combine_mode = "average"
-        self.sim.physics_material.restitution_combine_mode = "average"
+        # self.sim.physics_material.static_friction = 1.0
+        # self.sim.physics_material.dynamic_friction = 1.0
+        # self.sim.physics_material.friction_combine_mode = "average"  # 发生碰撞时的摩擦系数的结合方式，默认为average，terrain.physics_material 里设为 multiply
+        # self.sim.physics_material.restitution_combine_mode = "average"    # 发生碰撞时的恢复系数的结合方式，默认为average，terrain.physics_material 里设为设为 multiply
 
         # scale the terrains for aliengo
         # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
@@ -421,4 +423,4 @@ class AlienGoRoughEnvCfg_PLAY(AlienGoRoughEnvCfg):
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)

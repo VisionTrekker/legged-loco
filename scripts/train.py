@@ -107,8 +107,9 @@ def main():
     if args_cli.max_iterations:
         agent_cfg.max_iterations = args_cli.max_iterations
 
-    # create isaac environment
+    # create isaac environment （一般是调用 isaaclab/envs/manager_based_rl_env.py/ManagerBasedRLEnv()）
     env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+    print("\n---------------------------------\n[INFO] ManagerBasedRLEnv 初始化完毕\n---------------------------------\n")
 
     # wrap for video recording
     if args_cli.video:

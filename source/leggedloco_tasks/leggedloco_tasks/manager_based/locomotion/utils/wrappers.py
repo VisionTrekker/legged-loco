@@ -49,6 +49,7 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
 
         self.history_length = history_length
         self.proprio_obs_dim = get_proprio_obs_dim(env)
+        # (num_envs, 9, 45)
         self.proprio_obs_buf = torch.zeros(self.num_envs, self.history_length, self.proprio_obs_dim,
                                                     dtype=torch.float, device=self.unwrapped.device)
         
