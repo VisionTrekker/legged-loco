@@ -72,53 +72,53 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     python scripts/list_envs.py
     ```
 
-    | **Environment ID**                  | **Description**                                                                                                     |
-    |-------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-    | LeggedLoco-AlienGo-Flat             | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking)                             |
-    | LeggedLoco-AlienGo-Flat-Play        |                                                                                                                     |
-    | LeggedLoco-AlienGo-Flat-Lidar       | Track a velocity command on flat terrain with the Unitree AlienGo robot enhanced by Mid-360 LiDAR                   |
-    | LeggedLoco-AlienGo-Flat-Lidar-Play  |                                                                                                                     |
-    | LeggedLoco-AlienGo-Rough            | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking)           |
-    | LeggedLoco-AlienGo-Rough-Play       |                                                                                                                     |
-    | LeggedLoco-AlienGo-Rough-Lidar      | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot enhanced by Mid-360 LiDAR |
-    | LeggedLoco-AlienGo-Rough-Lidar-Play |                                                                                                                     |
+    | **Environment ID**                     | **Description**                                                                                                     |
+    |----------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+    | LeggedLoco-AlienGo-Flat-v0             | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking)                             |
+    | LeggedLoco-AlienGo-Flat-Play-v0        |                                                                                                                     |
+    | LeggedLoco-AlienGo-Flat-Lidar-v0       | Track a velocity command on flat terrain with the Unitree AlienGo robot enhanced by Mid-360 LiDAR                   |
+    | LeggedLoco-AlienGo-Flat-Lidar-Play-v0  |                                                                                                                     |
+    | LeggedLoco-AlienGo-Rough-v0            | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking)           |
+    | LeggedLoco-AlienGo-Rough-Play-v0       |                                                                                                                     |
+    | LeggedLoco-AlienGo-Rough-Lidar-v0      | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot enhanced by Mid-360 LiDAR |
+    | LeggedLoco-AlienGo-Rough-Lidar-Play-v0 |                                                                                                                     |
 
 ### Train
 #### Flat terrain
 *
     ```shell
     # Blind
-    python scripts/train.py --task LeggedLoco-AlienGo-Flat --history_len 9 --run_name blind --max_iterations 2000 --save_interval 200 --headless
+    python scripts/train.py --task LeggedLoco-AlienGo-Flat-v0 --history_len 9 --run_name blind --max_iterations 2000 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/train.py --task LeggedLoco-AlienGo-Flat-Lidar --history_len 9 --run_name lidar --max_iterations 2000 --save_interval 200 --headless
+    python scripts/train.py --task LeggedLoco-AlienGo-Flat-Lidar-v0 --history_len 9 --run_name lidar --max_iterations 2000 --save_interval 200 --headless
     ```
 
 #### Rough (stairs) terrain
 * Two stages
     ```shell
     # Blind
-    python scripts/train.py --task LeggedLoco-AlienGo-Rough --history_len 9 --run_name blind_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-09_16-58-56_blind" --max_iterations 2600 --save_interval 200 --headless
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough-v0 --history_len 9 --run_name blind_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-09_16-58-56_blind" --max_iterations 2600 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar --history_len 9 --run_name lidar_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-10_08-59-27_lidar" --max_iterations 2600 --save_interval 200 --headless
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar-v0 --history_len 9 --run_name lidar_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2600 --save_interval 200 --headless
     ```
 
 * Scratch
     ```shell
     # Blind
-    python scripts/train.py --task LeggedLoco-AlienGo-Rough --history_len 9 --run_name blind --max_iterations 3000 --save_interval 200 --headless
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough-v0 --history_len 9 --run_name blind --max_iterations 3000 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar --history_len 9 --run_name lidar --max_iterations 3000 --save_interval 200 --headless
+    python scripts/train.py --task LeggedLoco-AlienGo-Rough-Lidar-v0 --history_len 9 --run_name lidar --max_iterations 3000 --save_interval 200 --headless
     ```
 
 
 ### Test
 * 
     ```shell
-    python scripts/play.py --task TASK_ID-Play --history_len 9 --load_run RUN_NAME
+    python scripts/play.py --task TASK_ID-Play-v0 --history_len 9 --load_run RUN_NAME
     ```
 *   For Saving video
     ```shell
-    python scripts/play.py --task TASK_ID-Play --history_len 9 --load_run RUN_NAME --headless --video
+    python scripts/play.py --task TASK_ID-Play-v0 --history_len 9 --load_run RUN_NAME --headless --video
     ```
 
 ## Add New Environments
