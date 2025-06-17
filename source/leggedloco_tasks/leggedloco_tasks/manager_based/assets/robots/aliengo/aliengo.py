@@ -35,7 +35,7 @@ ALIENGO_ACTUATOR_DELAYEDPD_CFG = DelayedPDActuatorCfg(
     damping=2.0,
     friction=0.0,
     min_delay=4,
-    max_delay=6,
+    max_delay=4,
 )
 
 ALIENGO_ACTUATOR_IMPLICIT_CFG = ImplicitActuatorCfg(

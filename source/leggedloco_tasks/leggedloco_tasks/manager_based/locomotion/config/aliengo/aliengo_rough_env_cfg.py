@@ -78,9 +78,46 @@ class AlienGoRoughSceneCfg(InteractiveSceneCfg):
 ##
 @configclass
 class AlienGoRewardsCfg(RewardsCfg):
+    # -- task
+    track_lin_vel_xy_exp = RewTerm(
+        func=mdp.track_lin_vel_xy_exp,
+        weight=1.5,
+        params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
+    )
+    track_ang_vel_z_exp = RewTerm(
+        func=mdp.track_ang_vel_z_exp,
+        weight=0.75,
+        params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
+    )
+    # -- penalties
+    lin_vel_z_l2 = RewTerm(
+        func=mdp.lin_vel_z_l2,
+        weight=-2.0
+    )
+    ang_vel_xy_l2 = RewTerm(
+        func=mdp.ang_vel_xy_l2,
+        weight=-0.05
+    )
+    dof_torques_l2 = RewTerm(
+        func=mdp.joint_torques_l2,
+        weight=-0.0002
+    )
+    dof_acc_l2 = RewTerm(
+        func=mdp.joint_acc_l2,
+        weight=-2.5e-7
+    )
+    action_rate_l2 = RewTerm(
+        func=mdp.action_rate_l2,
+        weight=-0.01
+    )
+    flat_orientation_l2 = RewTerm(
+        func=mdp.flat_orientation_l2,
+        weight=-0.5,
+        params={"asset_cfg": SceneEntityCfg("robot")},
+    )
     feet_air_time = RewTerm(
         func=mdp.air_time_reward,
-        weight=1.0,
+        weight=0.1,
         params={
             "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
@@ -93,11 +130,7 @@ class AlienGoRewardsCfg(RewardsCfg):
         weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"])},
     )
-    flat_orientation_l2 = RewTerm(
-        func=mdp.flat_orientation_l2,
-        weight=-0.5,
-        params={"asset_cfg": SceneEntityCfg("robot")},
-    )
+
     feet_stumble = RewTerm(
         func=mdp.feet_stumble,
         weight=-0.02,
@@ -357,10 +390,8 @@ class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
         self.actions.joint_pos.scale = 0.5
 
         # event
-        self.events.push_robot = None
+        self.events.push_robot.params["velocity_range"] = {"x": (-0.1, 0.1), "y": (-0.1, 0.1)}
         self.events.add_base_mass.params["mass_distribution_params"] = (-1.0, 3.0)
-        self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
-        self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.reset_base.params = {
             "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.157, 0.157)},
@@ -375,14 +406,14 @@ class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
         }
 
         # rewards
-        self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
-        self.rewards.feet_air_time.weight = 0.10
-        self.rewards.undesired_contacts = None
-        self.rewards.dof_torques_l2.weight = -0.0002
-        self.rewards.track_lin_vel_xy_exp.weight = 1.5
-        self.rewards.track_ang_vel_z_exp.weight = 0.75
-        self.rewards.dof_acc_l2.weight = -2.5e-7
-        # self.rewards.dof_pos_limits.weight = -0.0002
+        # self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
+        # self.rewards.feet_air_time.weight = 0.10
+        # self.rewards.undesired_contacts = None
+        # self.rewards.dof_torques_l2.weight = -0.0002
+        # self.rewards.track_lin_vel_xy_exp.weight = 1.5
+        # self.rewards.track_ang_vel_z_exp.weight = 0.75
+        # self.rewards.dof_acc_l2.weight = -2.5e-7
+        # # self.rewards.dof_pos_limits.weight = -0.0002
 
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
@@ -390,7 +421,7 @@ class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
         self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)
 
         # terminations
-        self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
+        # self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
 
         # update sensor periods
         self.scene.contact_forces.update_period = self.sim.dt

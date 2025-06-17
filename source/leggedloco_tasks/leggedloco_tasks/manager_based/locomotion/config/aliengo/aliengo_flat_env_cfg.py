@@ -81,10 +81,53 @@ class AlienGoFlatSceneCfg(InteractiveSceneCfg):
 # Rewards
 ##
 @configclass
-class AlienGoRewardsCfg(RewardsCfg):
+class AlienGoRewardsCfg:
+    # -- task
+    track_lin_vel_xy_exp = RewTerm(
+        func=mdp.track_lin_vel_xy_exp,
+        weight=1.5,
+        params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
+    )
+    track_ang_vel_z_exp = RewTerm(
+        func=mdp.track_ang_vel_z_exp,
+        weight=1.5,
+        params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
+    )
+    # -- penalties
+    lin_vel_z_l2 = RewTerm(
+        func=mdp.lin_vel_z_l2,
+        weight=-2.0
+    )
+    ang_vel_xy_l2 = RewTerm(
+        func=mdp.ang_vel_xy_l2,
+        weight=-0.05
+    )
+    dof_torques_l2 = RewTerm(
+        func=mdp.joint_torques_l2,
+        weight=-0.0002
+    )
+    # 惩罚 关节加速度
+    dof_acc_l2 = RewTerm(
+        func=mdp.joint_acc_l2,
+        weight=-2.5e-7
+    )
+    # 惩罚 相邻actions的变化
+    action_rate_l2 = RewTerm(
+        func=mdp.action_rate_l2,
+        weight=-0.02
+    )
+    # 惩罚 相邻actions的L2范数
+    action_smoothness = RewTerm(
+        func=mdp.action_smoothness_penalty,
+        weight=-0.02,
+    )
+    flat_orientation_l2 = RewTerm(
+        func=mdp.flat_orientation_l2,
+        weight=-2.5
+    )
     feet_air_time = RewTerm(
         func=mdp.air_time_reward,
-        weight=1.0,
+        weight=0.25,
         params={
             "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
@@ -92,7 +135,7 @@ class AlienGoRewardsCfg(RewardsCfg):
             "velocity_threshold": 0.5,
         }
     )
-    # 关节位置 与 默认关节位置的 L1偏差
+    # 惩罚 关节位置 与 默认关节位置的 L1偏差
     hip_deviation = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.4,
@@ -108,11 +151,6 @@ class AlienGoRewardsCfg(RewardsCfg):
         func=mdp.base_height_l2,
         weight=-5.0,
         params={"target_height": 0.40},
-    )
-    # 相邻两个 actions 之间的 L2范数
-    action_smoothness = RewTerm(
-        func=mdp.action_smoothness_penalty,
-        weight=-0.02,
     )
     joint_power = RewTerm(
         func=mdp.power_penalty,
@@ -323,7 +361,7 @@ class AlienGoEventCfg:
         func=mdp.reset_joints_by_scale,
         mode="reset",
         params={
-            "position_range": (0.5, 1.5),
+            "position_range": (1.0, 1.0),
             "velocity_range": (0.0, 0.0),
         },
     )
@@ -379,9 +417,6 @@ class AlienGoFlatEnvCfg(ManagerBasedRLEnvCfg):
         # self.events.push_robot = None
         self.events.actuator_gains = None
         self.events.add_base_mass.params["mass_distribution_params"] = (-3.0, 3.0)
-        self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
-        self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
-        self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.reset_base.params = {
             "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.314, 0.314)},
             "velocity_range": {
@@ -395,16 +430,16 @@ class AlienGoFlatEnvCfg(ManagerBasedRLEnvCfg):
         }
 
         # rewards
-        self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"  # ".*_foot" / .*_calf"
-        self.rewards.feet_air_time.weight = 0.25
-        self.rewards.undesired_contacts = None
-        self.rewards.dof_torques_l2.weight = -0.0002
-        self.rewards.track_lin_vel_xy_exp.weight = 1.5
-        self.rewards.track_ang_vel_z_exp.weight = 1.5
-        self.rewards.dof_acc_l2.weight = -2.5e-7
-        # self.rewards.dof_pos_limits.weight = -0.0001
-        self.rewards.flat_orientation_l2.weight = -2.5
-        self.rewards.action_rate_l2.weight = -0.02
+        # self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"  # ".*_foot" / .*_calf"
+        # self.rewards.feet_air_time.weight = 0.25
+        # self.rewards.undesired_contacts = None
+        # self.rewards.dof_torques_l2.weight = -0.0002
+        # self.rewards.track_lin_vel_xy_exp.weight = 1.5
+        # self.rewards.track_ang_vel_z_exp.weight = 1.5
+        # self.rewards.dof_acc_l2.weight = -2.5e-7
+        # # self.rewards.dof_pos_limits.weight = -0.0001
+        # self.rewards.flat_orientation_l2.weight = -2.5
+        # self.rewards.action_rate_l2.weight = -0.02
 
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
@@ -413,7 +448,7 @@ class AlienGoFlatEnvCfg(ManagerBasedRLEnvCfg):
         # self.commands.base_velocity.rel_standing_envs = 0.1
 
         # terminations
-        self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
+        # self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
 
         # update sensor period
         self.scene.contact_forces.update_period = self.sim.dt
