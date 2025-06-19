@@ -31,6 +31,7 @@ parser.add_argument("--use_cnn", action="store_true", default=None, help="Name o
 parser.add_argument("--arm_fixed", action="store_true", default=False, help="Fix the robot's arms.")
 parser.add_argument("--use_rnn", action="store_true", default=False, help="Use RNN in the actor-critic model.")
 parser.add_argument("--history_length", default=0, type=int, help="Length of history buffer.")
+parser.add_argument("--keyboard", action="store_true", default=False, help="Whether to use keyboard.")
 
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
@@ -55,7 +56,9 @@ import imageio
 
 from rsl_rl.runners import OnPolicyRunner
 
+from isaaclab.devices import Se2Keyboard
 from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.utils.dict import print_dict
 from isaaclab.utils.io import load_yaml
 from isaaclab.utils import update_class_from_dict
@@ -69,6 +72,7 @@ from isaaclab_rl.rsl_rl import (
     export_policy_as_onnx
 )
 
+import rsl_rl_utils
 from leggedloco_tasks.manager_based.locomotion.config import *
 from leggedloco_tasks.manager_based.locomotion.utils import RslRlVecEnvHistoryWrapper
 
@@ -81,8 +85,23 @@ def main():
     # env_cfg: ManagerBasedRLEnvCfg = parse_env_cfg(
     #     args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
     # )
-    env_cfg = parse_env_cfg(args_cli.task, num_envs=args_cli.num_envs)
+    env_cfg = parse_env_cfg(
+        args_cli.task, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
+    )
     agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(args_cli.task, args_cli)
+
+    if args_cli.keyboard:
+        env_cfg.scene.num_envs = 1
+        env_cfg.terminations.time_out = None
+        env_cfg.commands.base_velocity.debug_vis = False
+        controller = Se2Keyboard(
+            v_x_sensitivity=env_cfg.commands.base_velocity.ranges.lin_vel_x[1],
+            v_y_sensitivity=env_cfg.commands.base_velocity.ranges.lin_vel_y[1],
+            omega_z_sensitivity=env_cfg.commands.base_velocity.ranges.ang_vel_z[1],
+        )
+        env_cfg.observations.policy.velocity_commands = ObsTerm(
+            func=lambda env: torch.tensor(controller.advance(), dtype=torch.float32).unsqueeze(0).to(env.device),
+        )
 
     # specify directory for logging experiments
     log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
@@ -201,6 +220,9 @@ def main():
 
             if args_cli.video and len(frames) == args_cli.video_length:
                 break
+
+            if args_cli.keyboard:
+                rsl_rl_utils.camera_follow(env)
     
     writer = imageio.get_writer(os.path.join(log_dir, f"{args_cli.load_run}.mp4"), fps=50)
     for frame in frames:
