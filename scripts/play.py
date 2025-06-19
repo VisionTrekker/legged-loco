@@ -66,6 +66,7 @@ from isaaclab_rl.rsl_rl import (
     RslRlOnPolicyRunnerCfg,
     RslRlVecEnvWrapper,
     export_policy_as_jit,
+    export_policy_as_onnx
 )
 
 from leggedloco_tasks.manager_based.locomotion.config import *
@@ -131,18 +132,39 @@ def main():
 
     # obtain the trained policy for inference
     policy = ppo_runner.get_inference_policy(device=env.unwrapped.device)
+
     robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
     cam_eye = (robot_pos_w[0] - 15.0, robot_pos_w[1] + 36.0, 7.0)
     cam_target = (robot_pos_w[0] + 3.0, robot_pos_w[1] + 18.0, 0.0)
     # set the camera view
     env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)
 
-    # export policy to onnx
+    # extract the neural network module
+    # we do this in a try-except to maintain backwards compatibility.
+    try:
+        # version 2.3 onwards
+        policy_nn = ppo_runner.alg.policy
+    except AttributeError:
+        # version 2.2 and below
+        policy_nn = ppo_runner.alg.actor_critic
+    # export policy to onnx/jit
     export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
-    # export_policy_as_onnx(ppo_runner.alg.actor_critic, export_model_dir, filename="policy.onnx")
-    export_policy_as_jit(ppo_runner.alg.policy, None, path=export_model_dir, filename="policy.jit")
+    export_policy_as_onnx(
+        policy=policy_nn,
+        normalizer=ppo_runner.obs_normalizer,
+        path=export_model_dir,
+        filename="policy.onnx"
+    )
+    export_policy_as_jit(
+        policy=policy_nn,
+        normalizer=None,  # ppo_runner.obs_normalizer
+        path=export_model_dir,
+        filename="policy.jit"
+    )
+
     # reset environment
     obs, _ = env.get_observations()
+
     if args_cli.video:
         base_env = env.unwrapped
         init_frame = base_env.render()
