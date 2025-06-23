@@ -19,7 +19,7 @@ from isaaclab.envs import ManagerBasedRLEnvCfg
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, CommandsCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 
-import leggedloco_tasks.manager_based.locomotion.mdp as mdp
+import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
 ##
 # Pre-defined configs
 ##

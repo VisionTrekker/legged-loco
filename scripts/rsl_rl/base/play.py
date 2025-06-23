@@ -76,8 +76,8 @@ from isaaclab_rl.rsl_rl import (
 )
 
 import rsl_rl_utils
-from leggedloco_tasks.manager_based.locomotion.config import *
-from leggedloco_tasks.manager_based.locomotion.utils import RslRlVecEnvHistoryWrapper
+from leggedloco_tasks.manager_based.locomotion.velocity.config import *
+from leggedloco_tasks.manager_based.locomotion.velocity.utils import RslRlVecEnvHistoryWrapper
 
 from utils import quat2eulers
 

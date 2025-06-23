@@ -1,20 +1,13 @@
 
 from isaaclab.utils import configclass
-##
-# Pre-defined configs
-##
-from isaaclab_rl.rsl_rl import (
-    RslRlOnPolicyRunnerCfg,
-    RslRlPpoActorCriticCfg,
-    RslRlPpoAlgorithmCfg,
-)
+from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg
 
 @configclass
-class AlienGoFlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
-    max_iterations = 5000
+    max_iterations = 20000
     save_interval = 200
-    experiment_name = "aliengo_flat"
+    experiment_name = "aliengo_rough"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
@@ -39,8 +32,10 @@ class AlienGoFlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
 
 
 @configclass
-class AlienGoRoughPPORunnerCfg(AlienGoFlatPPORunnerCfg):
+class AlienGoFlatPPORunnerCfg(AlienGoRoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.experiment_name = "aliengo_rough"
+        self.max_iterations = 5000
+        self.save_interval = 200
+        self.experiment_name = "aliengo_flat"

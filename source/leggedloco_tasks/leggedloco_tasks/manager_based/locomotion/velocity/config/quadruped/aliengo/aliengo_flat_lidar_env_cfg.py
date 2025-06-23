@@ -1,4 +1,8 @@
-import platform
+# Copyright (c) 2022-2024, The Isaac Lab Project Developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 from isaaclab.utils import configclass
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
@@ -9,30 +13,30 @@ from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.scene import InteractiveSceneCfg
-from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns, RayCasterCameraCfg
-from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR#, ROBOT_DIR
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
+from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.envs import ManagerBasedRLEnvCfg
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import CurriculumCfg, RewardsCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 
-import leggedloco_tasks.manager_based.locomotion.mdp as mdp
+import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
 
-from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DELAYEDPD_CFG as UNITREE_ALIENGO_CFG
-from ...terrains import ROUGH_TERRAINS_CFG
+from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG as UNITREE_ALIENGO_CFG
+from leggedloco_tasks.manager_based.locomotion.velocity.terrains import FLAT_TERRAINS_CFG
 
 ##
 # Scene definition
 ##
 @configclass
-class AlienGoRoughSceneCfg(InteractiveSceneCfg):
+class AlienGoFlatSceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a legged robot."""
 
     # ground terrain
     terrain = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="generator",
-        terrain_generator=ROUGH_TERRAINS_CFG,
+        terrain_generator=FLAT_TERRAINS_CFG,
         max_init_terrain_level=2,
         collision_group=-1,
         physics_material=sim_utils.RigidBodyMaterialCfg(
@@ -98,28 +102,41 @@ class AlienGoRewardsCfg(RewardsCfg):
             "velocity_threshold": 0.5,
         }
     )
+    hip_deviation = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.4,
+        # params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"])},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint"])},
+    )
     joint_deviation = RewTerm(
         func=mdp.joint_deviation_l1,
-        weight=-0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"])},
+        weight=-0.04,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_thigh_joint", ".*_calf_joint"])},
     )
-    flat_orientation_l2 = RewTerm(
-        func=mdp.flat_orientation_l2,
-        weight=-0.5,
-        params={"asset_cfg": SceneEntityCfg("robot")},
+    base_height = RewTerm(
+        func=mdp.base_height_l2,
+        weight=-5.0,
+        params={"target_height": 0.40},
     )
-    feet_stumble = RewTerm(
-        func=mdp.feet_stumble,
+    action_smoothness = RewTerm(
+        func=mdp.action_smoothness_penalty,
         weight=-0.02,
-        params={
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
-        },
     )
+    joint_power = RewTerm(
+        func=mdp.power_penalty,
+        weight=-2e-5,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
+    )
+    # feet_stumble = RewTerm(
+    #     func=mdp.feet_stumble,
+    #     weight=-0.05,
+    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
+    # )
     collision = RewTerm(
         func=mdp.collision_penalty,
         weight=-5.0,
         params={
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=[".*_hip", ".*_thigh", ".*_calf"]),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=[".*_calf"]),
             "threshold": 1.0,
         },
     )
@@ -263,8 +280,8 @@ class AlienGoEventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.6, 0.9),
-            "dynamic_friction_range": (0.6, 0.8),
+            "static_friction_range": (0.4, 2.0),
+            "dynamic_friction_range": (0.4, 1.6),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -282,7 +299,7 @@ class AlienGoEventCfg:
 
     actuator_gains = EventTerm(
         func=mdp.randomize_actuator_gains,
-        mode="startup",
+        mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stiffness_distribution_params": (0.8, 1.2),
@@ -330,17 +347,17 @@ class AlienGoEventCfg:
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
         mode="interval",
-        interval_range_s=(8.0, 12.0),
+        interval_range_s=(10.0, 15.0),
         params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
     )
 
 
 @configclass
-class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
+class AlienGoFlatLidarEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
 
     # environment settings
-    scene: AlienGoRoughSceneCfg = AlienGoRoughSceneCfg(num_envs=4096, env_spacing=2.5)
+    scene: AlienGoFlatSceneCfg = AlienGoFlatSceneCfg(num_envs=4096, env_spacing=2.5)
     observations: AlienGoObservationsCfg = AlienGoObservationsCfg()
     actions: AlienGoActionsCfg = AlienGoActionsCfg()
     events: AlienGoEventCfg = AlienGoEventCfg()
@@ -362,25 +379,26 @@ class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
         self.sim.physics_material = self.scene.terrain.physics_material
         # self.sim.physics_material.static_friction = 1.0
         # self.sim.physics_material.dynamic_friction = 1.0
-        # self.sim.physics_material.friction_combine_mode = "average"
-        # self.sim.physics_material.restitution_combine_mode = "average"
+        # self.sim.physics_material.friction_combine_mode = "multiply"
+        # self.sim.physics_material.restitution_combine_mode = "multiply"
 
-        # scale the terrains for aliengo
+        # scale down the terrains
         # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
-        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.02, 0.06)
-        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.02
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.04)
+        # self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
 
         # reduce action scale
         self.actions.joint_pos.scale = 0.5
 
         # event
-        self.events.push_robot = None
-        self.events.add_base_mass.params["mass_distribution_params"] = (-1.0, 3.0)
+        # self.events.push_robot = None
+        self.events.actuator_gains = None
+        self.events.add_base_mass.params["mass_distribution_params"] = (-3.0, 3.0)
         self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
         self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.reset_base.params = {
-            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.157, 0.157)},
+            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.314, 0.314)},
             "velocity_range": {
                 "x": (0.0, 0.0),
                 "y": (0.0, 0.0),
@@ -392,24 +410,27 @@ class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
         }
 
         # rewards
-        self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
-        self.rewards.feet_air_time.weight = 0.10
+        self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"  # ".*_foot" / .*_calf"
+        self.rewards.feet_air_time.weight = 0.25
         self.rewards.undesired_contacts = None
         self.rewards.dof_torques_l2.weight = -0.0002
         self.rewards.track_lin_vel_xy_exp.weight = 1.5
-        self.rewards.track_ang_vel_z_exp.weight = 0.75
+        self.rewards.track_ang_vel_z_exp.weight = 1.5
         self.rewards.dof_acc_l2.weight = -2.5e-7
-        # self.rewards.dof_pos_limits.weight = -0.0002
+        # self.rewards.dof_pos_limits.weight = -0.0001
+        self.rewards.flat_orientation_l2.weight = -2.5
+        self.rewards.action_rate_l2.weight = -0.02
 
         # Commands
-        self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (-0.1, 0.1)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)
+        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
+        # self.commands.base_velocity.rel_standing_envs = 0.1
 
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
 
-        # update sensor periods
+        # update sensor period
         self.scene.contact_forces.update_period = self.sim.dt
         self.scene.height_scanner.update_period = self.sim.dt * self.decimation
         self.scene.lidar_sensor.update_period = self.sim.dt * self.decimation
@@ -425,7 +446,7 @@ class AlienGoRoughEnvCfg(ManagerBasedRLEnvCfg):
 
 
 @configclass
-class AlienGoRoughLidarEnvCfg_PLAY(AlienGoRoughLidarEnvCfg):
+class AlienGoFlatLidarEnvCfg_PLAY(AlienGoFlatLidarEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -434,26 +455,12 @@ class AlienGoRoughLidarEnvCfg_PLAY(AlienGoRoughLidarEnvCfg):
         self.scene.num_envs = 50
         self.scene.env_spacing = 2.5
         # spawn the robot randomly in the grid (instead of their terrain levels)
-        self.scene.terrain.max_init_terrain_level = 2
+        self.scene.terrain.max_init_terrain_level = None
         # reduce the number of terrains to save memory
         if self.scene.terrain.terrain_generator is not None:
-            self.scene.terrain.terrain_generator.num_rows = 10
-            self.scene.terrain.terrain_generator.num_cols = 10
-            self.scene.terrain.terrain_generator.curriculum = True
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.16)
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.16)
-
-        self.events.reset_base.params = {
-            "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-0.0, 0.0)},
-            "velocity_range": {
-                "x": (0.0, 0.0),
-                "y": (0.0, 0.0),
-                "z": (0.0, 0.0),
-                "roll": (0.0, 0.0),
-                "pitch": (0.0, 0.0),
-                "yaw": (0.0, 0.0),
-            },
-        }
+            self.scene.terrain.terrain_generator.num_rows = 5
+            self.scene.terrain.terrain_generator.num_cols = 5
+            self.scene.terrain.terrain_generator.curriculum = False
 
         # disable randomization for play
         self.observations.policy.enable_corruption = False
@@ -464,5 +471,5 @@ class AlienGoRoughLidarEnvCfg_PLAY(AlienGoRoughLidarEnvCfg):
 
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (-0.1, 0.1)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.1, 0.1)
+        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.157, 0.157)

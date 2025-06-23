@@ -10,7 +10,7 @@ from . import agents
 
 # --- Flat
 gym.register(
-    id="LeggedLoco-AlienGo-Flat-v0",
+    id="LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
@@ -20,7 +20,7 @@ gym.register(
 )
 
 gym.register(
-    id="LeggedLoco-AlienGo-Flat-Play-v0",
+    id="LeggedLoco-Isaac-Velocity-Flat-Play-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
@@ -31,7 +31,7 @@ gym.register(
 
 
 gym.register(
-    id="LeggedLoco-AlienGo-Flat-Lidar-v0",
+    id="LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
@@ -41,7 +41,7 @@ gym.register(
 )
 
 gym.register(
-    id="LeggedLoco-AlienGo-Flat-Lidar-Play-v0",
+    id="LeggedLoco-Isaac-Velocity-Flat-Lidar-Play-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
@@ -53,7 +53,7 @@ gym.register(
 
 # --- Rough (stairs)
 gym.register(
-    id="LeggedLoco-AlienGo-Rough-v0",
+    id="LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
@@ -63,7 +63,7 @@ gym.register(
 )
 
 gym.register(
-    id="LeggedLoco-AlienGo-Rough-Play-v0",
+    id="LeggedLoco-Isaac-Velocity-Rough-Play-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
@@ -74,7 +74,7 @@ gym.register(
 
 
 gym.register(
-    id="LeggedLoco-AlienGo-Rough-Lidar-v0",
+    id="LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
@@ -84,7 +84,7 @@ gym.register(
 )
 
 gym.register(
-    id="LeggedLoco-AlienGo-Rough-Lidar-Play-v0",
+    id="LeggedLoco-Isaac-Velocity-Rough-Lidar-Play-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={

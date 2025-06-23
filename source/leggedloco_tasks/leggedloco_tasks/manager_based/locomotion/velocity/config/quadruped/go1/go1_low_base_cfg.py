@@ -15,32 +15,32 @@ from isaaclab.managers import SceneEntityCfg
 from isaaclab.terrains import TerrainImporterCfg, TerrainGeneratorCfg
 import isaaclab.terrains as terrain_gen
 from isaaclab.scene import InteractiveSceneCfg
-from isaaclab.sensors import ContactSensorCfg, RayCasterCfg
-from isaaclab.sensors.ray_caster import RayCasterCameraCfg, patterns
-from isaaclab.actuators import ImplicitActuatorCfg
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
+# from isaaclab.actuators import ImplicitActuatorCfg, DelayedPDActuatorCfg, DeplayedActuatorNetMLPCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.envs import ManagerBasedRLEnvCfg
-from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, TerminationsCfg, CommandsCfg
+from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, TerminationsCfg, CommandsCfg
 
-import leggedloco_tasks.manager_based.locomotion.mdp as mdp
+import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
 ##
 # Pre-defined configs
 ##
-from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG
 from isaaclab_rl.rsl_rl import (
     RslRlOnPolicyRunnerCfg,
     RslRlPpoActorCriticCfg,
     RslRlPpoAlgorithmCfg,
 )
 
+from isaaclab_assets.robots.unitree import GO1_ACTUATOR_CFG
+
 
 @configclass
-class Go1VisionRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+class Go1RoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
     max_iterations = 5000
     save_interval = 50
-    experiment_name = "go1_vision"
+    experiment_name = "go1_base"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
@@ -66,6 +66,21 @@ class Go1VisionRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
 ##
 # Robot configuration
 ##
+# GO1_ACTUATOR_CFG = DeplayedActuatorNetMLPCfg(
+#     joint_names_expr=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"],
+#     network_file=f"{ISAACLAB_NUCLEUS_DIR}/ActuatorNets/Unitree/unitree_go1.pt",
+#     pos_scale=-1.0,
+#     vel_scale=1.0,
+#     torque_scale=1.0,
+#     input_order="pos_vel",
+#     input_idx=[0, 1, 2],
+#     effort_limit=23.7,  # taken from spec sheet
+#     velocity_limit=30.0,  # taken from spec sheet
+#     saturation_effort=23.7,  # same as effort limit
+#     min_delay=4,
+#     max_delay=4
+# )
+
 UNITREE_GO1_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Robots/Unitree/Go1/go1.usd",
@@ -96,13 +111,64 @@ UNITREE_GO1_CFG = ArticulationCfg(
     ),
     soft_joint_pos_limit_factor=0.9,
     actuators={
-        "base_legs": ImplicitActuatorCfg(
-            joint_names_expr=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"],
-            effort_limit=23.5,
-            velocity_limit=30.0,
-            stiffness=30.0,
-            damping=0.5,
-        )
+        # "base_legs": DelayedPDActuatorCfg(
+        #     joint_names_expr=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"],
+        #     effort_limit=23.5,
+        #     velocity_limit=30.0,
+        #     stiffness=30.0,
+        #     damping=0.5,
+        #     min_delay=4,
+        #     max_delay=4,
+        # )
+        "base_legs": GO1_ACTUATOR_CFG
+    }
+)
+
+
+##
+# Configuration for custom terrains.
+##
+Go1_BASE_TERRAINS_CFG = TerrainGeneratorCfg(
+    size=(8.0, 8.0),
+    border_width=20.0,
+    num_rows=10,
+    num_cols=20,
+    horizontal_scale=0.1,
+    vertical_scale=0.005,
+    slope_threshold=0.75,
+    use_cache=False,
+    sub_terrains={
+        # "pyramid_stairs": terrain_gen.MeshPyramidStairsTerrainCfg(
+        #     proportion=0.2,
+        #     step_height_range=(0.05, 0.2),
+        #     step_width=0.3,
+        #     platform_width=3.0,
+        #     border_width=1.0,
+        #     holes=False,
+        # ),
+        # "pyramid_stairs_inv": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
+        #     proportion=0.2,
+        #     step_height_range=(0.05, 0.2),
+        #     step_width=0.3,
+        #     platform_width=3.0,
+        #     border_width=1.0,
+        #     holes=False,
+        # ),
+        # "boxes": terrain_gen.MeshRandomGridTerrainCfg(
+        #     proportion=0.2, grid_width=0.45, grid_height_range=(0.05, 0.1), platform_width=2.0
+        # ),
+        "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=0.4),
+        "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
+            proportion=0.4, noise_range=(0.02, 0.05), noise_step=0.02, border_width=0.25
+        ),
+        # "gaps": terrain_gen.MeshGapTerrainCfg(
+        #     proportion=0.1, gap_width_range=(0.5, 1.0), platform_width=2.0
+        # ),
+        # "hf_pyramid_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
+        #     proportion=0.2, slope_range=(0.0, 0.02), platform_width=2.0, border_width=0.25
+        # ),
+        # "hf_pyramid_slope_inv": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
+        #     proportion=0.2, slope_range=(0.0, 0.4), platform_width=2.0, border_width=0.25 ),
     },
 )
 
@@ -118,7 +184,7 @@ class Go1SceneCfg(InteractiveSceneCfg):
     terrain = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="generator",
-        terrain_generator=ROUGH_TERRAINS_CFG,
+        terrain_generator=Go1_BASE_TERRAINS_CFG,
         max_init_terrain_level=5,
         collision_group=-1,
         physics_material=sim_utils.RigidBodyMaterialCfg(
@@ -139,45 +205,14 @@ class Go1SceneCfg(InteractiveSceneCfg):
     robot: ArticulationCfg = UNITREE_GO1_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # sensors
-    # height_scanner = RayCasterCfg(
-    #     prim_path="{ENV_REGEX_NS}/Robot/base",
-    #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
-    #     attach_yaw_only=True,
-    #     pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-    #     debug_vis=False,
-    #     mesh_prim_paths=["/World/ground"],
-    # )
-    depth_sensor = RayCasterCameraCfg(
+    height_scanner = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/trunk",
-        mesh_prim_paths=["/World/ground"],
-        offset=RayCasterCameraCfg.OffsetCfg(pos=(0.245+0.027, 0.0075, 0.072+0.02), rot=(0.389, 0.0, 0.921, 0.0)),
-        data_types=["distance_to_image_plane"],
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
+        attach_yaw_only=True,
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
         debug_vis=False,
-        pattern_cfg=patterns.PinholeCameraPatternCfg(
-            # focal_length=24.0,
-            # horizontal_aperture=46.0,
-            focal_length=1.93, horizontal_aperture=3.8,
-            height=24,
-            width=32,
-        ),
-        max_distance=3,
+        mesh_prim_paths=["/World/ground"],
     )
-    # depth_sensor2 = RayCasterCameraCfg(
-    #     prim_path="{ENV_REGEX_NS}/Robot/trunk",
-    #     mesh_prim_paths=["/World/ground"],
-    #     offset=RayCasterCameraCfg.OffsetCfg(pos=(0.245+0.027, 0.0075, 0.072+0.02), rot=(0.389, 0.0, 0.921, 0.0)),
-    #     data_types=["distance_to_image_plane"],
-    #     debug_vis=True,
-    #     pattern_cfg=patterns.PinholeCameraPatternCfg(
-    #         # focal_length=24.0,
-    #         # horizontal_aperture=46.0,
-    #         focal_length=1.93, horizontal_aperture=3.8,
-    #         height=53,
-    #         width=30,
-    #     ),
-    #     max_distance=3,
-    # )
-
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
 
     # lights
@@ -195,18 +230,22 @@ class Go1SceneCfg(InteractiveSceneCfg):
 ##
 @configclass 
 class CustomGo1RewardsCfg(RewardsCfg):
+    hip_deviation = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.4,
+        # params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"])},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint"])},
+    )
     joint_deviation = RewTerm(
         func=mdp.joint_deviation_l1,
-        weight=-0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_joint", ".*_thigh_joint", ".*_calf_joint"])},
+        weight=-0.04,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_thigh_joint", ".*_calf_joint"])},
     )
-    # feet_stumble = RewTerm(
-    #     func=mdp.feet_stumble,
-    #     weight=-0.02,
-    #     params={
-    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
-    #     },
-    # )
+    base_height = RewTerm(
+        func=mdp.base_height_l2,
+        weight=-5.0,
+        params={"target_height": 0.25},
+    )
 
 ##
 # Observations
@@ -233,19 +272,11 @@ class ObservationsCfg:
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
         actions = ObsTerm(func=mdp.last_action)
 
-        depth_image = ObsTerm(
-            func=mdp.process_depth_image, 
-            params={
-                "sensor_cfg": SceneEntityCfg("depth_sensor"), 
-                "data_type": "distance_to_image_plane", 
-                "visualize": False
-            },
-            noise=Unoise(n_min=-0.1, n_max=0.1))
-
         def __post_init__(self):
             self.enable_corruption = True
             self.concatenate_terms = True
 
+    
     @configclass
     class ProprioCfg(ObsGroup):
         """Observations for proprioceptive group."""
@@ -266,26 +297,35 @@ class ObservationsCfg:
 
         def __post_init__(self):
             self.concatenate_terms = True
+    
+    @configclass
+    class CriticObsCfg(ObsGroup):
+        # observation terms (order preserved)
+        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
+        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
+        projected_gravity = ObsTerm(
+            func=mdp.projected_gravity,
+            noise=Unoise(n_min=-0.05, n_max=0.05),
+        )
+        
+        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
+        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
+        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
+        actions = ObsTerm(func=mdp.last_action)
+        height_scan = ObsTerm(
+            func=mdp.height_scan,
+            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
+            clip=(-1.0, 1.0),
+        )
 
-    # @configclass
-    # class TestDepthCfg(ObsGroup):
-    #     """Observations for depth sensor."""
-
-    #     # observation terms
-    #     depth_image = ObsTerm(
-    #         func=mdp.process_depth_image, 
-    #         params={"sensor_cfg": SceneEntityCfg("depth_sensor2"), "data_type": "distance_to_image_plane", "visualize": True},
-    #         noise=Unoise(n_min=-0.1, n_max=0.1)
-    #     )
-
-    #     def __post_init__(self):
-    #         self.concatenate_terms = True
-
-    # test_depth: TestDepthCfg = TestDepthCfg()
+        def __post_init__(self):
+            self.enable_corruption = False
+            self.concatenate_terms = True
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()
     proprio: ProprioCfg = ProprioCfg()
+    critic: CriticObsCfg = CriticObsCfg()
 
 
 ##
@@ -301,8 +341,8 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.8, 0.8),
-            "dynamic_friction_range": (0.6, 0.6),
+            "static_friction_range": (0.4, 2.0),
+            "dynamic_friction_range": (0.4, 1.0),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -320,7 +360,7 @@ class EventCfg:
 
     actuator_gains = EventTerm(
         func=mdp.randomize_actuator_gains,
-        mode="startup",
+        mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stiffness_distribution_params": (0.8, 1.2),
@@ -364,33 +404,17 @@ class EventCfg:
         },
     )
 
-    reset_depth_sensor = EventTerm(
-        func=mdp.reset_camera_pos_uniform,
-        mode="reset",
-        params={
-            "asset_cfg": SceneEntityCfg("depth_sensor"),
-            "pose_delta_range": {
-                "x": (-0.01, 0.01),
-                "y": (-0.01, 0.01),
-                "z": (-0.03, 0.03),
-                "roll": (-0.1, 0.1),
-                "pitch": (-0.1, 0.1),
-                "yaw": (-0.1, 0.1),
-            },
-        }
-    )
-
     # interval
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
         mode="interval",
-        interval_range_s=(8.0, 12.0),
+        interval_range_s=(10.0, 15.0),
         params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
     )
 
 
 @configclass
-class Go1VisionRoughEnvCfg(ManagerBasedRLEnvCfg):
+class Go1BaseRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the Go1 locomotion velocity-tracking environment."""
 
     scene: Go1SceneCfg = Go1SceneCfg(num_envs=4096, env_spacing=2.5)
@@ -407,27 +431,29 @@ class Go1VisionRoughEnvCfg(ManagerBasedRLEnvCfg):
         """Post initialization."""
         # general settings
         self.decimation = 4
+        self.sim.render_interval = 4
         self.episode_length_s = 20.0
         # simulation settings
         self.sim.dt = 0.005
         self.sim.disable_contact_processing = True
         self.sim.physics_material = self.scene.terrain.physics_material
-        self.sim.physics_material.static_friction = 1.0
-        self.sim.physics_material.dynamic_friction = 1.0
-        self.sim.physics_material.friction_combine_mode = "average"
-        self.sim.physics_material.restitution_combine_mode = "average"
+        # self.sim.physics_material.static_friction = 1.0
+        # self.sim.physics_material.dynamic_friction = 1.0
+        # self.sim.physics_material.friction_combine_mode = "multiply"
+        # self.sim.physics_material.restitution_combine_mode = "multiply"
 
         # scale down the terrains because the robot is small
-        self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
-        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
+        # self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
+        self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.04)
         self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
 
         # reduce action scale
         self.actions.joint_pos.scale = 0.25
 
         # event
-        self.events.push_robot = None
-        self.events.add_base_mass.params["mass_distribution_params"] = (0.0, 3.0)
+        # self.events.push_robot = None
+        self.events.actuator_gains = None
+        self.events.add_base_mass.params["mass_distribution_params"] = (-3.0, 3.0)
         self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
         self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
@@ -445,28 +471,36 @@ class Go1VisionRoughEnvCfg(ManagerBasedRLEnvCfg):
 
         # rewards
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
-        self.rewards.feet_air_time.weight = 0.01
+        # self.rewards.feet_air_time.weight = 0.01
         self.rewards.undesired_contacts = None
         self.rewards.dof_torques_l2.weight = -0.0002
         self.rewards.track_lin_vel_xy_exp.weight = 1.5
         self.rewards.track_ang_vel_z_exp.weight = 0.75
         self.rewards.dof_acc_l2.weight = -2.5e-7
-        # self.rewards.dof_pos_limits.weight = -0.0002
+        # self.rewards.dof_pos_limits.weight = -0.0001
 
         # Commands
-        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
+        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
-
-        # update sensor update periods
-        if self.scene.depth_sensor is not None:
-            self.scene.depth_sensor.update_period = self.decimation * self.sim.dt
+        # self.commands.base_velocity.rel_standing_envs = 0.1
 
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
-
+        self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
         # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
         # this generates terrains with increasing difficulty and is useful for training
+
+        # flat terrain
+        # self.scene.terrain.terrain_type = "plane"
+        # self.scene.terrain.terrain_generator = None
+        # self.curriculum.terrain_levels = None
+        self.rewards.flat_orientation_l2.weight = -2.5
+        self.rewards.feet_air_time.weight = 0.25
+
+        # update sensor period
+        self.scene.contact_forces.update_period = self.sim.dt
+
         if getattr(self.curriculum, "terrain_levels", None) is not None:
             if self.scene.terrain.terrain_generator is not None:
                 self.scene.terrain.terrain_generator.curriculum = True
@@ -476,7 +510,7 @@ class Go1VisionRoughEnvCfg(ManagerBasedRLEnvCfg):
 
 
 @configclass
-class Go1VisionRoughEnvCfg_PLAY(Go1VisionRoughEnvCfg):
+class Go1BaseRoughEnvCfg_PLAY(Go1BaseRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -491,8 +525,6 @@ class Go1VisionRoughEnvCfg_PLAY(Go1VisionRoughEnvCfg):
             self.scene.terrain.terrain_generator.num_rows = 5
             self.scene.terrain.terrain_generator.num_cols = 5
             self.scene.terrain.terrain_generator.curriculum = False
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.17, 0.17)
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.17, 0.17)
 
         # disable randomization for play
         self.observations.policy.enable_corruption = False
@@ -500,16 +532,8 @@ class Go1VisionRoughEnvCfg_PLAY(Go1VisionRoughEnvCfg):
         self.events.base_external_force_torque = None
         self.events.push_robot = None
         self.events.actuator_gains = None
-        self.events.reset_depth_sensor = EventTerm(
-            func=mdp.reset_camera_pos_uniform,
-            mode="reset",
-            params={
-                "asset_cfg": SceneEntityCfg("depth_sensor"),
-                "pose_delta_range": {},
-            }
-        )
 
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)

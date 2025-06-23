@@ -17,67 +17,37 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
-from isaaclab.sensors import ContactSensorCfg
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
 from isaaclab.terrains import TerrainImporterCfg, TerrainGeneratorCfg, FlatPatchSamplingCfg
 import isaaclab.terrains as terrain_gen
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.sensors.ray_caster import RayCasterCameraCfg, patterns
-from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
 from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.actuators import ImplicitActuatorCfg
 
-import leggedloco_tasks.manager_based.locomotion.mdp as mdp
+import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, LocomotionVelocityRoughEnvCfg
 from isaaclab_tasks.manager_based.locomotion.velocity.config.h1.rough_env_cfg import H1Rewards
-# from omni.isaac.lab_tasks.manager_based.locomotion.velocity.config.h1.rough_env_cfg import H1RoughEnvCfg as OriH1RoughEnvCfg
+# from isaaclab_tasks.manager_based.locomotion.velocity.config.h1.rough_env_cfg import H1RoughEnvCfg as OriH1RoughEnvCfg
 
 ##
 # Pre-defined configs
 ##
 from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG  # isort: skip
 from isaaclab_assets import H1_MINIMAL_CFG  # isort: skip
-
-from isaaclab_rl.rsl_rl import (
-    RslRlOnPolicyRunnerCfg,
-    RslRlPpoActorCriticCfg,
-    RslRlPpoAlgorithmCfg,
-)
+from .h1_low_base_cfg import H1RoughPPORunnerCfg
 
 
 @configclass
-class H1RoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 32
-    max_iterations = 50000
-    save_interval = 500
-    experiment_name = "h1_base_rough"
-    empirical_normalization = False
-    policy = RslRlPpoActorCriticCfg(
-        init_noise_std=1.0,
-        actor_hidden_dims=[512, 256, 128],
-        critic_hidden_dims=[512, 256, 128],
-        activation="elu",
-        class_name="ActorCritic",
-    )
-    algorithm = RslRlPpoAlgorithmCfg(
-        value_loss_coef=1.0,
-        use_clipped_value_loss=True,
-        clip_param=0.2,
-        entropy_coef=0.005,
-        num_learning_epochs=5,
-        num_mini_batches=4,
-        learning_rate=1.0e-3,
-        schedule="adaptive",
-        gamma=0.99,
-        lam=0.95,
-        desired_kl=0.01,
-        max_grad_norm=1.0,
-    )
+class H1VisionRoughPPORunnerCfg(H1RoughPPORunnerCfg):
+    experiment_name = "h1_vision_rough"
+
 
 
 """Configuration for custom terrains."""
-BASE_TERRAIN_CFG = TerrainGeneratorCfg(
+ROUGH_TERRAINS_CFG = TerrainGeneratorCfg(
     size=(8.0, 8.0),
     border_width=20.0,
     num_rows=10,
@@ -87,30 +57,62 @@ BASE_TERRAIN_CFG = TerrainGeneratorCfg(
     slope_threshold=0.75,
     use_cache=False,
     sub_terrains={
-        # "boxes": terrain_gen.MeshRandomGridTerrainCfg(
-        #     proportion=0.2, grid_width=0.45, grid_height_range=(0.05, 0.2), platform_width=2.0
-        # ),
-        "flat": terrain_gen.MeshPlaneTerrainCfg(
-            proportion=0.5
+        "pyramid_stairs": terrain_gen.MeshPyramidStairsTerrainCfg(
+            proportion=0.2,
+            step_height_range=(0.05, 0.3),
+            step_width=0.3,
+            platform_width=3.0,
+            border_width=1.0,
+            holes=False,
+        ),
+        "pyramid_stairs_inv": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
+            proportion=0.2,
+            step_height_range=(0.05, 0.3),
+            step_width=0.3,
+            platform_width=3.0,
+            border_width=1.0,
+            holes=False,
+        ),
+        "boxes": terrain_gen.MeshRandomGridTerrainCfg(
+            proportion=0.2, grid_width=0.45, grid_height_range=(0.05, 0.2), platform_width=2.0
         ),
         "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
-            proportion=0.5, noise_range=(0.02, 0.10), noise_step=0.02, border_width=0.25
+            proportion=0.2, noise_range=(0.02, 0.10), noise_step=0.02, border_width=0.25
+        ),
+        "hf_pyramid_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
+            proportion=0.1, slope_range=(0.0, 0.4), platform_width=2.0, border_width=0.25
+        ),
+        "hf_pyramid_slope_inv": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
+            proportion=0.1, slope_range=(0.0, 0.4), platform_width=2.0, border_width=0.25
+        ),
+        "init_pos": terrain_gen.HfDiscreteObstaclesTerrainCfg(
+            proportion=0.2, 
+            num_obstacles=10,
+            obstacle_height_mode="fixed",
+            obstacle_height_range=(1.5, 1.5), obstacle_width_range=(0.3, 1.5), 
+            platform_width=0.25
         ),
     },
 )
+for sub_terrain_name, sub_terrain_cfg in ROUGH_TERRAINS_CFG.sub_terrains.items():
+    sub_terrain_cfg.flat_patch_sampling = {
+        sub_terrain_name: FlatPatchSamplingCfg(num_patches=2, patch_radius=[0.01,0.1,0.5,1.0], max_height_diff=0.5)
+    }
+"""Rough terrains configuration."""
+
 
 ##
 # Scene definition
 ##
 @configclass
-class BaseSceneCfg(InteractiveSceneCfg):
+class TrainSceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a legged robot."""
 
     # ground terrain
     terrain = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="generator",
-        terrain_generator=BASE_TERRAIN_CFG,
+        terrain_generator=ROUGH_TERRAINS_CFG,
         max_init_terrain_level=5, # TRY 9 AS WELL
         collision_group=-1,
         physics_material=sim_utils.RigidBodyMaterialCfg(
@@ -128,18 +130,18 @@ class BaseSceneCfg(InteractiveSceneCfg):
     )
     # robots
     robot = H1_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-    # robot = H1_2DoF_CFG
     # sensors
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True, debug_vis=False)
     # lights
-    light = AssetBaseCfg(
-        prim_path="/World/light",
-        spawn=sim_utils.DistantLightCfg(
-            color=(1.0, 1.0, 1.0),
-            intensity=1000.0,
+    sky_light = AssetBaseCfg(
+        prim_path="/World/skyLight",
+        spawn=sim_utils.DomeLightCfg(
+            intensity=750.0,
+            texture_file=f"{ISAAC_NUCLEUS_DIR}/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
         ),
     )
     
+    # height_scanner = None
     height_scanner = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
@@ -151,6 +153,7 @@ class BaseSceneCfg(InteractiveSceneCfg):
     height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link"
     # camera
     lidar_sensor = None
+    depth_sensor = None
 
 
 ##
@@ -165,22 +168,32 @@ class ObservationsCfg:
         """Observations for policy group."""
 
         # observation terms (order preserved)
-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
-        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
-        projected_gravity = ObsTerm(
-            func=mdp.projected_gravity,
-            noise=Unoise(n_min=-0.05, n_max=0.05),
-        )
+        base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
+        base_ang_vel = ObsTerm(func=mdp.base_ang_vel)
+        projected_gravity = ObsTerm(func=mdp.projected_gravity)
         
         velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
-        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
-        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
+        joint_pos = ObsTerm(func=mdp.joint_pos_rel)
+        joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         actions = ObsTerm(func=mdp.last_action)
+        height_scan = ObsTerm(
+            func=mdp.height_scan,
+            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
+            clip=(-1.0, 1.0),
+        )
+        # depth_measurement = ObsTerm(
+        #     func=mdp.process_lidar,
+        #     params={"sensor_cfg": SceneEntityCfg("lidar_sensor")},
+        # )
+        # realsense_depth_measurement = ObsTerm(
+        #     func=mdp.process_depth_image,
+        #     params={"sensor_cfg": SceneEntityCfg("depth_sensor"), "data_type": "distance_to_image_plane"},
+        # )
 
         def __post_init__(self):
             self.enable_corruption = True
             self.concatenate_terms = True
-    
+
     @configclass
     class ProprioCfg(ObsGroup):
         """Observations for proprioceptive group."""
@@ -201,23 +214,29 @@ class ObservationsCfg:
         def __post_init__(self):
             self.concatenate_terms = True
     
+    @configclass
     class CriticObsCfg(ObsGroup):
-        """Observations for policy group."""
-
         # observation terms (order preserved)
-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
-        base_ang_vel = ObsTerm(func=mdp.base_ang_vel)
-        projected_gravity = ObsTerm(func=mdp.projected_gravity)
+        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
+        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
+        projected_gravity = ObsTerm(
+            func=mdp.projected_gravity,
+            noise=Unoise(n_min=-0.05, n_max=0.05),
+        )
         
         velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
-        joint_pos = ObsTerm(func=mdp.joint_pos_rel)
-        joint_vel = ObsTerm(func=mdp.joint_vel_rel)
+        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
+        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
         actions = ObsTerm(func=mdp.last_action)
         height_scan = ObsTerm(
             func=mdp.height_scan,
             params={"sensor_cfg": SceneEntityCfg("height_scanner")},
             clip=(-1.0, 1.0),
         )
+
+        def __post_init__(self):
+            self.enable_corruption = False
+            self.concatenate_terms = True
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()
@@ -270,8 +289,24 @@ class EventCfg:
         },
     )
 
+    # reset_base = EventTerm(
+    #     func=mdp.reset_root_state_uniform,
+    #     mode="reset",
+    #     params={
+    #         "pose_range": {"x": (-0.0, 0.0), "y": (-0.0, 0.0), "yaw": (-3.14, 3.14)},
+    #         "velocity_range": {
+    #             "x": (-0.5, 0.5),
+    #             "y": (-0.5, 0.5),
+    #             "z": (-0.5, 0.5),
+    #             "roll": (-0.5, 0.5),
+    #             "pitch": (-0.5, 0.5),
+    #             "yaw": (-0.5, 0.5),
+    #         },
+    #     },
+    # )
+
     reset_base = EventTerm(
-        func=mdp.reset_root_state_uniform,
+        func=mdp.reset_root_state_from_terrain,
         mode="reset",
         params={
             "pose_range": {"x": (-0.0, 0.0), "y": (-0.0, 0.0), "yaw": (-3.14, 3.14)},
@@ -295,7 +330,18 @@ class EventCfg:
         },
     )
 
+    # # interval
+    # push_robot = EventTerm(
+    #     func=mdp.push_by_setting_velocity,
+    #     mode="interval",
+    #     interval_range_s=(10.0, 15.0),
+    #     params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
+    # )
 
+
+##
+# Rewards
+#
 @configclass
 class CustomH1Rewards(H1Rewards):
     feet_stumble = RewTerm(
@@ -305,7 +351,6 @@ class CustomH1Rewards(H1Rewards):
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*ankle_link"),
         },
     )
-
 ##
 # Commands
 ##
@@ -339,17 +384,18 @@ class TerminationsCfg:
 
 
 @configclass
-class H1BaseRoughEnvCfg(ManagerBasedRLEnvCfg):
+class H1VisionRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
 
     # Scene settings
-    scene: InteractiveSceneCfg = BaseSceneCfg(num_envs=4096, env_spacing=2.5)
+    scene: TrainSceneCfg = TrainSceneCfg(num_envs=4096, env_spacing=2.5)
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
     commands: CommandsCfg = CommandsCfg()
     # MDP settings
     rewards: RewardsCfg = H1Rewards()
+    # rewards: RewardsCfg = CustomH1Rewards()
     terminations: TerminationsCfg = TerminationsCfg()
     events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
@@ -388,7 +434,7 @@ class H1BaseRoughEnvCfg(ManagerBasedRLEnvCfg):
 
         # Rewards
         self.rewards.undesired_contacts = None
-        self.rewards.flat_orientation_l2.weight = -5.0
+        self.rewards.flat_orientation_l2.weight = -1.0
         self.rewards.dof_torques_l2.weight = 0.0
         self.rewards.action_rate_l2.weight = -0.005
         self.rewards.dof_acc_l2.weight = -1.25e-7
@@ -404,6 +450,8 @@ class H1BaseRoughEnvCfg(ManagerBasedRLEnvCfg):
         # self.scene.lidar_sensor = None
         if self.scene.lidar_sensor is not None:
             self.scene.lidar_sensor.update_period = 4 * self.sim.dt
+        if self.scene.depth_sensor is not None:
+            self.scene.depth_sensor.update_period = 4 * self.sim.dt
         self.scene.contact_forces.update_period = self.sim.dt
         if self.scene.height_scanner is not None:
             self.scene.height_scanner.update_period = self.decimation * self.sim.dt
@@ -422,7 +470,7 @@ class H1BaseRoughEnvCfg(ManagerBasedRLEnvCfg):
 
 
 @configclass
-class H1BaseRoughEnvCfg_PLAY(H1BaseRoughEnvCfg):
+class H1VisionRoughEnvCfg_PLAY(H1VisionRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -443,7 +491,6 @@ class H1BaseRoughEnvCfg_PLAY(H1BaseRoughEnvCfg):
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         self.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         self.commands.base_velocity.ranges.heading = (0.0, 0.0)
-        self.commands.base_velocity.heading_command = True
         # disable randomization for play
         self.observations.policy.enable_corruption = False
         # remove random pushing
