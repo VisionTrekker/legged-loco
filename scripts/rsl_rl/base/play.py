@@ -7,12 +7,15 @@
 
 """Launch Isaac Sim Simulator first."""
 
+import os
+import sys
 import argparse
 import subprocess
 
 from isaaclab.app import AppLauncher
 
 # local imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import cli_args  # isort: skip
 
 # add argparse arguments
