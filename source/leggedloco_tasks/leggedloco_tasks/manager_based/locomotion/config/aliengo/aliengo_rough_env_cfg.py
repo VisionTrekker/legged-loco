@@ -1,3 +1,4 @@
+import math
 import platform
 from isaaclab.utils import configclass
 import isaaclab.sim as sim_utils
@@ -77,7 +78,7 @@ class AlienGoRoughSceneCfg(InteractiveSceneCfg):
 # Rewards
 ##
 @configclass
-class AlienGoRewardsCfg(RewardsCfg):
+class AlienGoRewardsCfg:
     # -- task
     track_lin_vel_xy_exp = RewTerm(
         func=mdp.track_lin_vel_xy_exp,
