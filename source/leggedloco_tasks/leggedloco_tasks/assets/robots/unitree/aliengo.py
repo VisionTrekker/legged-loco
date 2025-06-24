@@ -10,7 +10,8 @@
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import DCMotorCfg, DelayedPDActuatorCfg, ImplicitActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
-import os
+
+from leggedloco_tasks.assets import ISAACLAB_ASSETS_DATA_DIR
 
 
 ##
@@ -86,7 +87,7 @@ ALIENGO_ACTUATOR_DELAYEDPD_CALF_CFG = DelayedPDActuatorCfg(
 UNITREE_ALIENGO_DCMOTOR_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         # usd_path=f"http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.1/Isaac/Robots/Unitree/aliengo/aliengo.usd",
-        usd_path=f"{os.getenv('USER_PATH_TO_USD')}/robots/aliengo/aliengo.usd",
+        usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/Unitree/Aliengo/aliengo.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,

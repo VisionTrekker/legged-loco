@@ -1,15 +1,25 @@
 [package]
+
+
 version = "0.0.1"
-title = "Legged Robot extension"
+
+# Description
+category = "isaaclab"
+readme  = "README.md"
+
+title = "RL Extension Library for Robots, Based on IsaacLab."
+author = "Zhi Liu"
 description="Isaac Lab Extension for Legged Robot Locomotion"
-category = "robotics"
-keywords = ["kit", "robotics"]
-readme  = "docs/README.md"
+keywords = ["extension", "isaaclab"]
 
 [dependencies]
 "omni.kit.uiapp" = {}
 "isaacsim.core" = {}
-"saaclab" = {}
+"isaaclab" = {}
+"isaaclab_assets" = {}
+"isaaclab_mimic" = {}
+"isaaclab_rl" = {}
+"isaaclab_tasks" = {}
 
 # Main python module this extension provides.
 [[python.module]]
