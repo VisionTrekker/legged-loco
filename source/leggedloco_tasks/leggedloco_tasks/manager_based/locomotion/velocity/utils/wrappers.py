@@ -93,19 +93,19 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
             extras["time_outs"] = truncated
 
         # update obsservation history buffer & reset the history buffer for done environments
-        # (num_envs, 9, 45)
-        # 新重置的 envs 对应位置为 全0的(9, 45)
-        # 不重置的 envs 对应位置为 8个旧本体观测 + 1个新本体观测
+        # (num_envs, 5, 45)
+        # 新重置的 envs 对应位置为 全0的(5, 45)
+        # 不重置的 envs 对应位置为 1个新本体观测 + 4个旧本体观测
         self.proprio_obs_buf = torch.where(
             (self.episode_length_buf < 1)[:, None, None], 
             torch.stack([torch.zeros_like(proprio_obs)] * self.history_length, dim=1),
             torch.cat([
-                self.proprio_obs_buf[:, 1:],
-                proprio_obs.unsqueeze(1)
+                proprio_obs.unsqueeze(1),
+                self.proprio_obs_buf[:, :-1],
             ], dim=1)
         )
         proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)  # (num_envs, 9*45)
-        # (num_envs, 45 + 9*45) : 新的观测 + 9个本体观测
+        # (num_envs, 45 + 5*45) : 新的观测 + 5个本体观测
         curr_obs = torch.cat([obs, proprio_obs_history], dim=1)
         extras["observations"]["policy"] = curr_obs
 

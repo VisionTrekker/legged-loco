@@ -61,7 +61,8 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 | **基座碰撞节点** | - **问题**：AlienGo 的 USD 文件中具有碰撞检测的是 `"trunk"` 而非 `"base"`<br>- **解决方案**：在触发终止、域随机化推力等操作中，将基座 `body_names` 改为 `"trunk"`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | **执行器类型** | - **配置**：虽然 AlienGo 关节为直流电机（`DCMotor`），但为应对实际中的延迟，选用 `DelayedPDActuator` 模拟延迟<br>- **延时范围**：`(4, 6)` 个控制周期（即 `(4*0.005, 6*0.005)` 秒）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | **重置初始方向** | - **配置**：<br>&nbsp;&nbsp;&nbsp;&nbsp;- reset时 yaw 角度范围：`(-0.157, 0.157)`（±9°）<br>&nbsp;&nbsp;&nbsp;&nbsp;- commands 中 yaw 角度范围：`(-0.1, 0.1)`（±5.7°）<br>- **目的**：模拟非正对楼梯的运动场景，提升上下楼梯的鲁棒性                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-
+* 在 IsaacLab 中，Aliengo 初始位置为 (-0.1, 0.1, 0.8, 1.0, -1.5) 比 (-0.0, 0.0, 0.8, 0.8, -1.5) 的训练收敛快。
+* history_len 由 9 改为 5，且新的观测帧放在前面，训练上限更高。
 
 ## Usage
 
@@ -87,37 +88,37 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 *
     ```shell
     # Blind
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0 --history_len 9 --run_name blind --max_iterations 2000 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0 --history_len 5 --run_name blind_his5 --max_iterations 2000 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0  --history_len 9 --run_name lidar --max_iterations 2000 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0  --history_len 5 --run_name lidar_his5 --max_iterations 2000 --save_interval 200 --headless
     ```
 
 #### Rough (stairs) terrain
 * Two stages
     ```shell
     # Blind
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 9 --run_name blind_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-09_16-58-56_blind" --max_iterations 2600 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 5 --run_name blind_his5_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-09_16-58-56_blind" --max_iterations 2600 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 9 --run_name lidar_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2600 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_his5_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2600 --save_interval 200 --headless
     ```
 
 * Scratch
     ```shell
     # Blind
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 9 --run_name blind --max_iterations 3000 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 5 --run_name blind_his5 --max_iterations 3000 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 9 --run_name lidar --max_iterations 3000 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_his5 --max_iterations 3000 --save_interval 200 --headless
     ```
 
 
 ### Test
 * 
     ```shell
-    python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 9 --load_run RUN_NAME
+    python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 5 --load_run RUN_NAME
     ```
 *   For Saving video
     ```shell
-    python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 9 --load_run RUN_NAME --headless --video
+    python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 5 --load_run RUN_NAME --headless --video
     ```
 
 ## Add New Environments
