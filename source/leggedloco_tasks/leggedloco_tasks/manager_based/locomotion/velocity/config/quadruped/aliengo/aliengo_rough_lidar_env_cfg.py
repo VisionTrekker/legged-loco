@@ -18,8 +18,8 @@ from isaaclab.managers import TerminationTermCfg as DoneTerm
 
 import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
 
-from leggedloco_tasks.manager_based.assets.robots.aliengo import UNITREE_ALIENGO_DCMOTOR_CFG as UNITREE_ALIENGO_CFG
-from leggedloco_tasks.manager_based.locomotion.velocity.terrains import ROUGH_TERRAINS_CFG
+from leggedloco_tasks.assets.robots.unitree import UNITREE_ALIENGO_DCMOTOR_CFG as UNITREE_ALIENGO_CFG
+from leggedloco_tasks.assets.terrains import ROUGH_TERRAINS_CFG
 
 ##
 # Scene definition

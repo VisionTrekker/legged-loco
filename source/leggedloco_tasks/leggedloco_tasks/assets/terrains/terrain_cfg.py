@@ -63,10 +63,8 @@ FLAT_TERRAINS_CFG = TerrainGeneratorCfg(
     slope_threshold=0.75,
     use_cache=False,
     sub_terrains={
-        "flat": FLAT.replace(proportion=0.3),
-        "random_rough": RANDOM_ROUGH.replace(proportion=0.3),
-        "hf_pyramid_slope": HF_PYRAMID_SLOPE.replace(proportion=0.2),
-        "hf_pyramid_slope_inv": HF_PYRAMID_SLOPE_INV.replace(proportion=0.2),
+        "flat": FLAT.replace(proportion=0.5),
+        "random_rough": RANDOM_ROUGH.replace(proportion=0.5),
     },
 )
 
@@ -102,7 +100,7 @@ ROUGH_BLIND_TERRAINS_CFG = TerrainGeneratorCfg(
     sub_terrains={
         "pyramid_stairs": PYRAMID_STAIRS.replace(proportion=0.3),
         "pyramid_stairs_inv": PYRAMID_STAIRS_INV.replace(proportion=0.4, step_height_range=(0.02, 0.23)),
-        "boxes": BOX.replace(proportion=0.2),
+        "boxes": BOX.replace(proportion=0.2, grid_height_range=(0.02, 0.15)),
         "hf_pyramid_slope": HF_PYRAMID_SLOPE.replace(proportion=0.05),
         "hf_pyramid_slope_inv": HF_PYRAMID_SLOPE_INV.replace(proportion=0.05),
     },
