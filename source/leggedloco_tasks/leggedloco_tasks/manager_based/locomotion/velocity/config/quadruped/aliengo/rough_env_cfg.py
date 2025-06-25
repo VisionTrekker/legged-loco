@@ -105,6 +105,9 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.events.push_robot.params["velocity_range"] = {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}
 
         # ------------------------------Rewards------------------------------
+        # General
+        self.rewards.is_terminated.weight = 0
+
         # Root penalties
         self.rewards.lin_vel_z_l2.weight = -2.0
         self.rewards.ang_vel_xy_l2.weight = -0.05
