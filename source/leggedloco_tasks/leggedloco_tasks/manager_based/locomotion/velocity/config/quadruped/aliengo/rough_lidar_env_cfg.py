@@ -86,7 +86,7 @@ class AlienGoRoughLidarEnvCfg(LocomotionVelocityRoughEnvCfg):
             "pose_range": {
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
-                "yaw": (-0.2, 0.2),
+                "z": (0.0, 0.2),
                 # "roll": (-3.14, 3.14),
                 # "pitch": (-3.14, 3.14),
                 # "yaw": (-3.14, 3.14),
@@ -189,7 +189,7 @@ class AlienGoRoughLidarPlayEnvCfg(AlienGoRoughLidarEnvCfg):
             "pose_range": {
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
-                "yaw": (-0.2, 0.2),
+                "z": (0.0, 0.2),
                 # "roll": (-3.14, 3.14),
                 # "pitch": (-3.14, 3.14),
                 # "yaw": (-3.14, 3.14),
