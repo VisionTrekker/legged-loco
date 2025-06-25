@@ -220,7 +220,7 @@ class CustomGo2RewardsCfg(RewardsCfg):
         params={"target_height": 0.32},
     )
     stand_still_penalty = RewTerm(
-        func=mdp.stand_still_penalty,
+        func=mdp.stand_still_without_cmd,
         weight=-1.0,
         params={
             "command_name": "base_velocity",
@@ -228,11 +228,11 @@ class CustomGo2RewardsCfg(RewardsCfg):
         },
     )
     action_smoothness = RewTerm(
-        func=mdp.action_smoothness_penalty,
+        func=mdp.action_smoothness,
         weight=-0.02,
     )
     joint_power = RewTerm(
-        func=mdp.power_penalty,
+        func=mdp.joint_power,
         weight=-2e-5,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
@@ -253,7 +253,7 @@ class CustomGo2RewardsCfg(RewardsCfg):
     # )
 
     collision = RewTerm(
-        func=mdp.collision_penalty,
+        func=mdp.undesired_contacts,
         weight=-5.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["Head.*", ".*_hip", ".*_thigh", ".*_calf"]),

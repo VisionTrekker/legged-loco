@@ -228,11 +228,11 @@ class CustomGo2RewardsCfg(RewardsCfg):
         params={"target_height": 0.32},
     )
     action_smoothness = RewTerm(
-        func=mdp.action_smoothness_penalty,
+        func=mdp.action_smoothness,
         weight=-0.02,
     )
     joint_power = RewTerm(
-        func=mdp.power_penalty,
+        func=mdp.joint_power,
         weight=-2e-5,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )

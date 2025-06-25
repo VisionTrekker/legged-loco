@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 from isaaclab.assets import Articulation, RigidObject
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import ManagerTermBase
-from isaaclab.managers import RewardTermCfg as RewTerm
+from isaaclab.managers import RewardTermCfg
 from isaaclab.sensors import ContactSensor, RayCaster
 import isaaclab.utils.math as math_utils
 
@@ -282,7 +282,7 @@ def stand_still_without_cmd(
         torch.abs(asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]),
         dim=1
     )
-    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) < command_threshold
+    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=-1) < command_threshold
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -542,7 +542,7 @@ class GaitReward(ManagerTermBase):
     quadrupedal gaits with two pairs of synchronized feet.
     """
 
-    def __init__(self, cfg: RewTerm, env: ManagerBasedRLEnv):
+    def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
         """Initialize the term.
 
         Args:
@@ -686,23 +686,22 @@ def feet_slide(
     """
     # Penalize feet sliding
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    # 足部 > 1.0，则表明 触地
     contacts = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).max(dim=1)[0] > 1.0
-    asset: RigidObject = env.scene[asset_cfg.name]
 
+    asset: RigidObject = env.scene[asset_cfg.name]
     # feet_vel = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :2]
     # reward = torch.sum(feet_vel.norm(dim=-1) * contacts, dim=1)
 
-    cur_footvel_translated = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :] - asset.data.root_lin_vel_w[
-        :, :
-    ].unsqueeze(1)
+    # 足部线速度 - base线速度（世界坐标系）
+    cur_footvel_translated = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :] - asset.data.root_lin_vel_w[:, :].unsqueeze(1)
+    # 足部相对base线速度（body坐标系）
     footvel_in_body_frame = torch.zeros(env.num_envs, len(asset_cfg.body_ids), 3, device=env.device)
     for i in range(len(asset_cfg.body_ids)):
         footvel_in_body_frame[:, i, :] = math_utils.quat_apply_inverse(
             asset.data.root_quat_w, cur_footvel_translated[:, i, :]
         )
-    foot_leteral_vel = torch.sqrt(torch.sum(torch.square(footvel_in_body_frame[:, :, :2]), dim=2)).view(
-        env.num_envs, -1
-    )
+    foot_leteral_vel = torch.sqrt(torch.sum(torch.square(footvel_in_body_frame[:, :, :2]), dim=2)).view(env.num_envs, -1)
     reward = torch.sum(foot_leteral_vel * contacts, dim=1)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
@@ -717,7 +716,9 @@ def feet_height(
 ) -> torch.Tensor:
     """Reward the swinging feet for clearing a specified height off the ground"""
     asset: RigidObject = env.scene[asset_cfg.name]
+    # 足部高度 - 目标高度
     foot_z_target_error = torch.square(asset.data.body_pos_w[:, asset_cfg.body_ids, 2] - target_height)
+    # 足部xy线速度（映射到(-1, 1)）
     foot_velocity_tanh = torch.tanh(
         tanh_mult * torch.linalg.norm(asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :2], dim=2)
     )
@@ -737,11 +738,11 @@ def feet_height_body(
 ) -> torch.Tensor:
     """Reward the swinging feet for clearing a specified height off the ground"""
     asset: RigidObject = env.scene[asset_cfg.name]
+    # 足部位置 - base位置（世界坐标系）
     cur_footpos_translated = asset.data.body_pos_w[:, asset_cfg.body_ids, :] - asset.data.root_pos_w[:, :].unsqueeze(1)
     footpos_in_body_frame = torch.zeros(env.num_envs, len(asset_cfg.body_ids), 3, device=env.device)
-    cur_footvel_translated = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :] - asset.data.root_lin_vel_w[
-        :, :
-    ].unsqueeze(1)
+    # 足部线速度 - base线速度（世界坐标系）
+    cur_footvel_translated = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :] - asset.data.root_lin_vel_w[:, :].unsqueeze(1)
     footvel_in_body_frame = torch.zeros(env.num_envs, len(asset_cfg.body_ids), 3, device=env.device)
     for i in range(len(asset_cfg.body_ids)):
         footpos_in_body_frame[:, i, :] = math_utils.quat_apply_inverse(
@@ -750,6 +751,7 @@ def feet_height_body(
         footvel_in_body_frame[:, i, :] = math_utils.quat_apply_inverse(
             asset.data.root_quat_w, cur_footvel_translated[:, i, :]
         )
+    # 足部相对base高度（body坐标系） - 目标高度
     foot_z_target_error = torch.square(footpos_in_body_frame[:, :, 2] - target_height).view(env.num_envs, -1)
     foot_velocity_tanh = torch.tanh(tanh_mult * torch.norm(footvel_in_body_frame[:, :, :2], dim=2))
     reward = torch.sum(foot_z_target_error * foot_velocity_tanh, dim=1)
@@ -762,18 +764,19 @@ def feet_distance_y_exp(
     env: ManagerBasedRLEnv, stance_width: float, std: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     asset: RigidObject = env.scene[asset_cfg.name]
-    cur_footsteps_translated = asset.data.body_link_pos_w[:, asset_cfg.body_ids, :] - asset.data.root_link_pos_w[
-        :, :
-    ].unsqueeze(1)
-    footsteps_in_body_frame = torch.zeros(env.num_envs, 4, 3, device=env.device)
-    for i in range(4):
+    # 足部位置 - base位置（世界坐标系）
+    cur_footsteps_translated = asset.data.body_pos_w[:, asset_cfg.body_ids, :] - asset.data.root_pos_w[:, :].unsqueeze(1)
+    footsteps_in_body_frame = torch.zeros(env.num_envs, len(asset_cfg.body_ids), 3, device=env.device)
+    for i in range(len(asset_cfg.body_ids)):
         footsteps_in_body_frame[:, i, :] = math_utils.quat_apply(
-            math_utils.quat_conjugate(asset.data.root_link_quat_w), cur_footsteps_translated[:, i, :]
+            math_utils.quat_conjugate(asset.data.root_quat_w), cur_footsteps_translated[:, i, :]
         )
     stance_width_tensor = stance_width * torch.ones([env.num_envs, 1], device=env.device)
+    # 期望的足部y轴位置
     desired_ys = torch.cat(
         [stance_width_tensor / 2, -stance_width_tensor / 2, stance_width_tensor / 2, -stance_width_tensor / 2], dim=1
     )
+    # 期望的足部y轴位置 与 足部相对base的y轴位置 的误差
     stance_diff = torch.square(desired_ys - footsteps_in_body_frame[:, :, 1])
     reward = torch.exp(-torch.sum(stance_diff, dim=1) / std**2)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
@@ -789,7 +792,8 @@ def upward(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("r
 
 
 def body_ang_acc_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
-    """Penalize the linear acceleration of bodies using L2-kernel."""
+    """Penalize the angular acceleration of bodies using L2-kernel.
+       部位的角角速度"""
     asset: Articulation = env.scene[asset_cfg.name]
     return torch.sum(torch.norm(asset.data.body_ang_acc_w[:, asset_cfg.body_ids, :], dim=-1), dim=1)
 
@@ -801,8 +805,8 @@ def goal_distance(
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     # compute the error
-    goal_track_error_pos = torch.norm(env.command_manager.get_command(command_name)[:,:2], dim=1)
-    reward = torch.where(goal_track_error_pos < 1.0, torch.tensor(1.0, device=env.device), torch.exp(-0.2*goal_track_error_pos))
+    goal_track_error_pos = torch.linalg.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
+    reward = torch.where(goal_track_error_pos < 1.0, torch.tensor(1.0, device=env.device), torch.exp(-0.2 * goal_track_error_pos))
     # print("goal distance reward: ", torch.exp(-0.2*goal_track_error_pos), " reach mark: ", goal_track_error_pos < 1.0)
     return reward
 
@@ -814,13 +818,13 @@ def robot_goal_velocity_projection(
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
 
-    robot_vel_b_normalized = asset.data.root_lin_vel_b[:,:2]/torch.norm(asset.data.root_lin_vel_b[:,:2], dim=-1).unsqueeze(dim=-1)
-    command_b = env.command_manager.get_command(command_name)[:,:2]
-    command_b_normalized=command_b / torch.norm(command_b, dim=-1).unsqueeze(dim=-1)
-    ball_robot_velocity_projection = 1.0 - torch.sum(command_b_normalized * robot_vel_b_normalized[:,0:2], dim=-1)/2.0 # set approaching speed to velocity command
-    rew_dribbling_robot_ball_vel=torch.exp(-1.0* torch.pow(ball_robot_velocity_projection, 2) )
+    robot_vel_b_normalized = asset.data.root_lin_vel_b[:, :2] / torch.norm(asset.data.root_lin_vel_b[:, :2], dim=-1).unsqueeze(dim=-1)
+    command_b = env.command_manager.get_command(command_name)[:, :2]
+    command_b_normalized = command_b / torch.norm(command_b, dim=-1).unsqueeze(dim=-1)
+    ball_robot_velocity_projection = 1.0 - torch.sum(command_b_normalized * robot_vel_b_normalized[:,0:2], dim=-1) / 2.0 # set approaching speed to velocity command
+    rew_dribbling_robot_ball_vel = torch.exp(-1.0 * torch.pow(ball_robot_velocity_projection, 2))
 
-    goal_track_error_pos = torch.norm(env.command_manager.get_command(command_name)[:,:2], dim=1)
+    goal_track_error_pos = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
 
     reward = torch.where(goal_track_error_pos < 1.0, torch.tensor(1.0, device=env.device), rew_dribbling_robot_ball_vel)
     # print("goal velocity projection reward: ", rew_dribbling_robot_ball_vel, " reach mark: ", goal_track_error_pos < 1.0)
@@ -832,12 +836,12 @@ def stand_still_velocity_penalty(
 ) -> torch.Tensor:
     """Penalize the robot for not standing still after reaching target."""
     asset: RigidObject = env.scene[asset_cfg.name]
-    goal_track_error_pos = torch.norm(env.command_manager.get_command(command_name)[:,:2], dim=1)
+    goal_track_error_pos = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
     reached_mark = goal_track_error_pos < 1.0
 
     zero_penalty = torch.zeros(env.num_envs, device=env.device)
-    zero_penalty[reached_mark] = torch.norm(asset.data.root_lin_vel_b[reached_mark,:3], dim=-1)
-    zero_penalty[reached_mark] += torch.norm(asset.data.root_ang_vel_b[reached_mark,:3], dim=-1)
+    zero_penalty[reached_mark] = torch.norm(asset.data.root_lin_vel_b[reached_mark, :3], dim=-1)
+    zero_penalty[reached_mark] += torch.norm(asset.data.root_ang_vel_b[reached_mark, :3], dim=-1)
 
     # print("stand still velocity penalty: ", zero_penalty, " reach mark: ", reached_mark)
 
@@ -866,31 +870,3 @@ def goal_direction(
     # reward = torch.where(goal_track_error_pos < 1.5, torch.tensor(1.0, device=env.device), reward)
     # print("goal direction reward: ", reward)
     return reward
-
-
-def collision_penalty(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
-    """Penalize undesired contacts as the number of violations that are above a threshold."""
-    # extract the used quantities (to enable type-hinting)
-    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
-    # check if contact force is above threshold
-    net_contact_forces = contact_sensor.data.net_forces_w_history
-    is_contact = torch.max(torch.norm(net_contact_forces[:, :, sensor_cfg.body_ids], dim=-1), dim=1)[0] > threshold
-    # print("contact force: ", net_contact_forces[:, :, sensor_cfg.body_ids])
-
-    # sum over contacts for each environment
-    return torch.sum(is_contact, dim=1)
-
-
-def stand_still_penalty(
-    env: ManagerBasedRLEnv, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
-) -> torch.Tensor:
-    """Penalize the robot for not standing still when velocity commands are small."""
-    asset: RigidObject = env.scene[asset_cfg.name]
-
-    # compute out of limits constraints
-    angle = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]
-    # print("stand still velocity penalty: ", zero_penalty, " reach mark: ", reached_mark)
-    rew = torch.sum(torch.abs(angle), dim=1)
-
-    small_commands = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=-1) < 0.1
-    return rew * small_commands

@@ -68,6 +68,14 @@ class VelocitySceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
+    height_scanner_base = RayCasterCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/base",
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
+        attach_yaw_only=True,
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.05, size=[0.1, 0.1]),
+        debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
+    )
     lidar_scanner = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.05), rot=(1.0, 0.0, 0.0, 0.0)),
@@ -424,7 +432,7 @@ class RewardsCfg:
         func=mdp.base_height_l2, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
-            "sensor": SceneEntityCfg("height_scanner"),
+            "sensor_cfg": SceneEntityCfg("height_scanner_base"),
             "target_height": 0.0,
         },
     )
@@ -544,8 +552,7 @@ class RewardsCfg:
     )
     # 相同部位关节的 actions 方差之和，即让相同部位的关节同步（考虑 base 的 z方向）
     action_sync = RewTerm(
-        func=mdp.action_sync,
-        weight=0.0,
+        func=mdp.action_sync, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot"),
             "joint_groups": [
@@ -581,7 +588,7 @@ class RewardsCfg:
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
         }
     )
-    # TODO
+    # commands > 0.1 且 base的xy线速度 > 0.5情况下，同步脚 和 异步脚的奖励值（考虑 base 的 z方向）
     feet_gait = RewTerm(
         func=mdp.GaitReward, weight=0.0,
         params={
@@ -595,16 +602,16 @@ class RewardsCfg:
             "sensor_cfg": SceneEntityCfg("contact_forces"),
         },
     )
-    # TODO（考虑 base 的 z方向）
+    # 有 commands 情况下，惩罚足部触地的个数 != 2（考虑 base 的 z方向）
     feet_contact = RewTerm(
-        func=mdp.feet_contact, weight=0.0,
+        func=mdp.feet_contact, weight=-0.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
             "command_name": "base_velocity",
             "expect_contact_num": 2,
         },
     )
-    # TODO（考虑 base 的 z方向）
+    # commands < 0.1 情况下，奖励足部触地的个数（考虑 base 的 z方向）
     feet_contact_without_cmd = RewTerm(
         func=mdp.feet_contact_without_cmd, weight=0.0,
         params={
@@ -612,14 +619,14 @@ class RewardsCfg:
             "command_name": "base_velocity",
         },
     )
-    # （考虑 base 的 z方向）
+    # xy方向接触力 > 4 * z方向接触力，惩罚接触到竖直面（考虑 base 的 z方向）
     feet_stumble = RewTerm(
         func=mdp.feet_stumble, weight=-0.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
         },
     )
-    # TODO（考虑 base 的 z方向）
+    # 足部触地时，足部相对base的xy方向线速度 的范数（考虑 base 的 z方向）
     feet_slide = RewTerm(
         func=mdp.feet_slide, weight=-0.0,
         params={
@@ -627,10 +634,9 @@ class RewardsCfg:
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
         },
     )
-    # TODO（考虑 base 的 z方向）
+    # commands > 0.1 情况下，足部xy线速度 * (足部高度 - 目标高度)（考虑 base 的 z方向）
     feet_height = RewTerm(
-        func=mdp.feet_height,
-        weight=0.0,
+        func=mdp.feet_height, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
             "tanh_mult": 2.0,
@@ -638,10 +644,9 @@ class RewardsCfg:
             "command_name": "base_velocity",
         },
     )
-    # TODO（考虑 base 的 z方向）
+    # commands > 0.1 情况下，足部xy线速度 * (足部相对base高度 - 目标高度)（考虑 base 的 z方向）
     feet_height_body = RewTerm(
-        func=mdp.feet_height_body,
-        weight=0.0,
+        func=mdp.feet_height_body, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
             "tanh_mult": 2.0,
@@ -649,16 +654,16 @@ class RewardsCfg:
             "command_name": "base_velocity",
         },
     )
-    # TODO（考虑 base 的 z方向）
+    # 足部相对base的y方向位置 与 期望位置 的误差的exp（考虑 base 的 z方向）
     feet_distance_y_exp = RewTerm(
-        func=mdp.feet_distance_y_exp,
-        weight=0.0,
+        func=mdp.feet_distance_y_exp, weight=0.0,
         params={
             "std": math.sqrt(0.25),
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
-            "stance_width": float,
+            "stance_width": float,  # 期望的足部相对base的y方向位置
         },
     )
+    # 1 - 重力投影z轴，鼓励base正置
     upward = RewTerm(
         func=mdp.upward, weight=0.0
     )
@@ -724,6 +729,8 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
         # we tick all the sensors based on the smallest update period (physics update period)
         if self.scene.height_scanner is not None:
             self.scene.height_scanner.update_period = self.sim.dt * self.decimation
+        if self.scene.height_scanner_base is not None:
+            self.scene.height_scanner_base.update_period = self.sim.dt * self.decimation
         if self.scene.lidar_scanner is not None:
             self.scene.lidar_scanner.update_period = self.sim.dt * self.decimation
         if self.scene.contact_forces is not None:

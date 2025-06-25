@@ -26,19 +26,18 @@ class AlienGoFlatEnvCfg(AlienGoRoughEnvCfg):
         # Root penalties
         self.rewards.flat_orientation_l2.weight = -2.5
         self.rewards.base_height_l2.weight = -5.0
-        self.rewards.base_height_l2.params["target_height"] = 0.43
 
         # Joint penalties
-        self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.4, [".*_hip_joint"])
-        self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_thigh_l1", -0.04, [".*_thigh_joint"])
-        self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_calf_l1", -0.04, [".*_calf_joint"])
+        self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_hip_l1", -0.4, [".*_hip_joint"])
+        self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_thigh_l1", -0.04, [".*_thigh_joint"])
+        self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_calf_l1", -0.04, [".*_calf_joint"])
 
         # Action penalties
         self.rewards.action_rate_l2.weight = -0.02
         self.rewards.action_smoothness.weight = -0.02
 
         # Velocity-tracking rewards
-        self.rewards.track_lin_vel_xy_exp.weight = 1.5
+        self.rewards.track_lin_vel_xy_exp.weight = 3.0
         self.rewards.track_ang_vel_z_exp.weight = 1.5
 
         # Others
@@ -97,6 +96,6 @@ class AlienGoFlatPlayEnvCfg(AlienGoFlatEnvCfg):
         self.events.push_robot = None
 
         # ------------------------------Commands------------------------------
-        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
