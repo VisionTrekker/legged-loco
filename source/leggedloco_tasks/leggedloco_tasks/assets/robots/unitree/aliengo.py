@@ -108,7 +108,7 @@ UNITREE_ALIENGO_DCMOTOR_CFG = ArticulationCfg(
             ".*L_hip_joint": 0.1,
             ".*R_hip_joint": -0.1,
             "F[L,R]_thigh_joint": 0.8,
-            "R[L,R]_thigh_joint": 1.0,
+            "R[L,R]_thigh_joint": 0.9,
             ".*_calf_joint": -1.5,
         },
         joint_vel={".*": 0.0},

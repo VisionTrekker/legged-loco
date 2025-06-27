@@ -64,7 +64,7 @@ FLAT_TERRAINS_CFG = TerrainGeneratorCfg(
     use_cache=False,
     sub_terrains={
         "flat": FLAT.replace(proportion=0.5),
-        "random_rough": RANDOM_ROUGH.replace(proportion=0.5),
+        "random_rough": RANDOM_ROUGH.replace(proportion=0.5, noise_range=(0.02, 0.06), noise_step=0.01),
     },
 )
 
