@@ -74,6 +74,7 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.events.add_base_mass.params["asset_cfg"].body_names = [self.base_link_name]
         self.events.add_base_mass.params["mass_distribution_params"] = (0.0, 3.0)
         self.events.randomize_com_positions.params["asset_cfg"].body_names = [self.base_link_name]
+        self.events.randomize_rigid_body_inertia.params["inertia_distribution_params"] = (0.75, 1.25)
 
         # reset
         self.events.base_external_force_torque.params["asset_cfg"].body_names = [self.base_link_name]

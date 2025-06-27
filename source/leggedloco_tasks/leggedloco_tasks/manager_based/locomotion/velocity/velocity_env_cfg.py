@@ -339,7 +339,17 @@ class EventCfg:
         },
     )
 
-    randomize_com_positions = EventTerm(
+    randomize_rigid_body_inertia = EventTerm(  # 随机改变env所有部位的惯性张量（ * ）
+        func=mdp.randomize_rigid_body_inertia,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
+            "inertia_distribution_params": (0.5, 1.5),
+            "operation": "scale",
+        },
+    )
+
+    randomize_rigid_body_com = EventTerm(  # 随机更改env的指定部位（一般为base）的质心偏移（xyz方向）
         func=mdp.randomize_rigid_body_com,
         mode="startup",
         params={
