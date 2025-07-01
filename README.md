@@ -88,26 +88,26 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 *
     ```shell
     # Blind
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0 --history_len 5 --run_name blind_his5 --max_iterations 2000 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0 --history_len 5 --run_name blind --max_iterations 2000 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0  --history_len 5 --run_name lidar_his5 --max_iterations 2000 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0  --history_len 5 --run_name lidar --max_iterations 2000 --save_interval 200 --headless
     ```
 
 #### Rough (stairs) terrain
 * Two stages
     ```shell
     # Blind
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 5 --run_name blind_his5_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-09_16-58-56_blind" --max_iterations 2600 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 5 --run_name blind_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-09_16-58-56_blind" --max_iterations 2600 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_his5_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2600 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2600 --save_interval 200 --headless
     ```
 
 * Scratch
     ```shell
     # Blind
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 5 --run_name blind_his5 --max_iterations 3000 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 5 --run_name blind --max_iterations 3000 --save_interval 200 --headless
     # With 360 lidar
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_his5 --max_iterations 3000 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar --max_iterations 3000 --save_interval 200 --headless
     ```
 
 

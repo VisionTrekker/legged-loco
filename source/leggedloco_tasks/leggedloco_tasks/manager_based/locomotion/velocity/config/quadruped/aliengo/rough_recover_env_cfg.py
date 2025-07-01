@@ -1,7 +1,7 @@
 
 from isaaclab.utils import configclass
 
-from leggedloco_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
+from leggedloco_tasks.manager_based.locomotion.velocity.velocity_recover_env_cfg import LocomotionVelocityRoughRecoverEnvCfg
 
 ##
 # Pre-defined configs
@@ -11,7 +11,7 @@ from leggedloco_tasks.assets.robots.unitree import UNITREE_ALIENGO_DCMOTOR_CFG
 
 
 @configclass
-class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
     base_link_name = "trunk"
     foot_link_name = ".*_foot"
@@ -189,7 +189,7 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.upward.weight = 0.0
 
         # If the weight of rewards is 0, set rewards to None
-        if self.__class__.__name__ == "AlienGoRoughEnvCfg":
+        if self.__class__.__name__ == "AlienGoRoughRecoverEnvCfg":
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations------------------------------
@@ -203,7 +203,7 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
 
 @configclass
-class AlienGoRoughPlayEnvCfg(AlienGoRoughEnvCfg):
+class AlienGoRoughRecoverPlayEnvCfg(AlienGoRoughRecoverEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

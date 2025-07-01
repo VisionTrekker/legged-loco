@@ -94,3 +94,56 @@ gym.register(
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughPPORunnerCfg",
     },
 )
+
+
+
+
+"""
+Recover
+"""
+
+
+# --- Flat ---
+# blind
+gym.register(
+    id="LeggedLoco-Isaac-Velocity-Flat-Recover-AlienGo-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.flat_recover_env_cfg:AlienGoFlatRecoverEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoFlatRecoverPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="LeggedLoco-Isaac-Velocity-Flat-Recover-Play-AlienGo-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.flat_recover_env_cfg:AlienGoFlatRecoverPlayEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoFlatRecoverPPORunnerCfg",
+    },
+)
+
+
+# --- Rough (stairs) ---
+# blind
+gym.register(
+    id="LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.rough_recover_env_cfg:AlienGoRoughRecoverEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughRecoverPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="LeggedLoco-Isaac-Velocity-Rough-Play-AlienGo-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.rough_recover_env_cfg:AlienGoRoughRecoverPlayEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AlienGoRoughRecoverPPORunnerCfg",
+    },
+)

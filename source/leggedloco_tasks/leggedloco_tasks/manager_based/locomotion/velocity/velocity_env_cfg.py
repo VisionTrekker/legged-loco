@@ -72,8 +72,8 @@ class VelocitySceneCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=0.05, size=[0.1, 0.1]),
-        debug_vis=False,
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[0.4, 0.2]),
+        debug_vis=True,
         mesh_prim_paths=["/World/ground"],
     )
     lidar_scanner = RayCasterCfg(
@@ -578,6 +578,12 @@ class RewardsCfg:
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
         }
     )
+    feet_air_time_variance = RewTerm(
+        func=mdp.feet_air_time_variance, weight=-0.0,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
+        }
+    )
     feet_gait = RewTerm(  # commands > 0.1 且 base的xy线速度 > 0.5情况下，同步脚 和 异步脚的奖励值（考虑 base 的 z方向）
         func=mdp.GaitReward, weight=0.0,
         params={
@@ -662,6 +668,12 @@ class TerminationsCfg:
     illegal_contact = DoneTerm(
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=""), "threshold": 1.0},
+    )
+
+    # drop
+    base_drop = DoneTerm(
+        func=mdp.root_height_below_minimum,
+        params={"minimum_height": -20},
     )
 
 

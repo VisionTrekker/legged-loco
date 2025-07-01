@@ -30,6 +30,13 @@ class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         max_grad_norm=1.0,
     )
 
+@configclass
+class AlienGoRoughRecoverPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.experiment_name = "aliengo_roughRecover"
+
 
 @configclass
 class AlienGoFlatPPORunnerCfg(AlienGoRoughPPORunnerCfg):
@@ -39,3 +46,13 @@ class AlienGoFlatPPORunnerCfg(AlienGoRoughPPORunnerCfg):
         self.max_iterations = 5000
         self.save_interval = 200
         self.experiment_name = "aliengo_flat"
+
+
+@configclass
+class AlienGoFlatRecoverPPORunnerCfg(AlienGoFlatPPORunnerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.max_iterations = 5000
+        self.save_interval = 200
+        self.experiment_name = "aliengo_flatRecover"
