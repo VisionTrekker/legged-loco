@@ -15,8 +15,8 @@ class AlienGoFlatRecoverEnvCfg(AlienGoRoughRecoverEnvCfg):
         self.scene.terrain.terrain_generator = FLAT_TERRAINS_CFG
         self.scene.robot.init_state.pos = (0.0, 0.0, 0.50)
         self.scene.robot.init_state.joint_pos = {
-            ".*L_hip_joint": -0.0,
-            ".*R_hip_joint": 0.0,
+            ".*L_hip_joint": -0.1,
+            ".*R_hip_joint": 0.1,
             "F[L,R]_thigh_joint": 0.8,
             "R[L,R]_thigh_joint": 0.8,
             ".*_calf_joint": -1.5,
@@ -58,18 +58,18 @@ class AlienGoFlatRecoverEnvCfg(AlienGoRoughRecoverEnvCfg):
         # Root penalties
         self.rewards.lin_vel_z_l2.weight = -2.0
         self.rewards.ang_vel_xy_l2.weight = -0.05
-        self.rewards.flat_orientation_l2.weight = -2.5
-        self.rewards.base_height_l2.weight = -2.0
+        self.rewards.flat_orientation_l2.weight = -1.5
+        self.rewards.base_height_l2.weight = -5.0
         self.rewards.body_lin_acc_l2.weight = -0.0
 
         # Joint penalties
-        self.rewards.joint_torques_l2.weight = -2.5e-5
+        self.rewards.joint_torques_l2.weight = -5e-5
         self.rewards.joint_vel_l2.weight = -0.0
-        self.rewards.joint_acc_l2.weight = -2.5e-8
+        self.rewards.joint_acc_l2.weight = -5e-8
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_hip_l1", -0.4, [".*_hip_joint"])
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_thigh_l1", -0.04, [".*_thigh_joint"])
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_calf_l1", -0.04, [".*_calf_joint"])
-        self.rewards.joint_deviation_lowCmd.weight = -0.05  # -1.0
+        self.rewards.joint_deviation_lowCmd.weight = -0.1  # -1.0
         self.rewards.joint_pos_limits.weight = -0.5  # -5.0
         self.rewards.joint_vel_limits.weight = -0.0
         self.rewards.joint_power.weight = -2e-5
@@ -81,8 +81,8 @@ class AlienGoFlatRecoverEnvCfg(AlienGoRoughRecoverEnvCfg):
         ]
 
         # Action penalties
-        self.rewards.action_rate_l2.weight = -0.001
-        self.rewards.action_smoothness.weight = -0.002
+        self.rewards.action_rate_l2.weight = -0.02
+        self.rewards.action_smoothness.weight = -0.02
 
         # Contact sensor
         self.rewards.undesired_contacts.weight = -1.0
@@ -96,13 +96,13 @@ class AlienGoFlatRecoverEnvCfg(AlienGoRoughRecoverEnvCfg):
         # Others
         self.rewards.feet_air_time.weight = 0.25
         self.rewards.feet_air_time_variance.weight = -0.5
-        self.rewards.feet_gait.weight = 0.1
+        self.rewards.feet_gait.weight = 0.05
         self.rewards.feet_contact.weight = -0.0
         self.rewards.feet_contact_without_cmd.weight = 0.5  # 0.1
         self.rewards.feet_stumble.weight = -0.0
         self.rewards.feet_slide.weight = -0.05
         self.rewards.feet_height.weight = -0.0
-        self.rewards.feet_height_body.weight = -2.5  # -5.0
+        self.rewards.feet_height_body.weight = -5.0  # -5.0
         self.rewards.feet_height_body.params["target_height"] = -0.27
         self.rewards.feet_distance_y_exp.weight = 0.0
 
@@ -128,7 +128,7 @@ class AlienGoFlatRecoverPlayEnvCfg(AlienGoFlatRecoverEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
-
+        self.episode_length_s = 5.0
         # ------------------------------Sence------------------------------
         # make a smaller scene for play
         self.scene.num_envs = 50
@@ -151,8 +151,8 @@ class AlienGoFlatRecoverPlayEnvCfg(AlienGoFlatRecoverEnvCfg):
         self.events.randomize_actuator_gains = None
         self.events.randomize_reset_base.params = {
             "pose_range": {
-                "x": (-0.5, 0.5),
-                "y": (-0.5, 0.5),
+                "x": (-0.8, 0.8),
+                "y": (-0.8, 0.8),
                 "z": (0.0, 0.1),
                 "roll": (-3.14, 3.14),
                 "pitch": (-3.14, 3.14),
