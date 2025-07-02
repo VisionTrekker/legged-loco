@@ -129,7 +129,7 @@ gym.register(
 # --- Rough (stairs) ---
 # blind
 gym.register(
-    id="LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0",
+    id="LeggedLoco-Isaac-Velocity-Rough-Recover-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
@@ -139,7 +139,7 @@ gym.register(
 )
 
 gym.register(
-    id="LeggedLoco-Isaac-Velocity-Rough-Play-AlienGo-v0",
+    id="LeggedLoco-Isaac-Velocity-Rough-Recover-Play-AlienGo-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={

@@ -128,7 +128,9 @@ class AlienGoFlatRecoverPlayEnvCfg(AlienGoFlatRecoverEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
+
         self.episode_length_s = 5.0
+
         # ------------------------------Sence------------------------------
         # make a smaller scene for play
         self.scene.num_envs = 50

@@ -8,7 +8,7 @@ from isaaclab.utils import configclass
 from .velocity_env_cfg import LocomotionVelocityRoughEnvCfg
 import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
 
-
+@configclass
 class LocomotionVelocityRoughRecoverEnvCfg(LocomotionVelocityRoughEnvCfg):
     def __post_init__(self):
         """Post initialization."""
@@ -42,7 +42,7 @@ class LocomotionVelocityRoughRecoverEnvCfg(LocomotionVelocityRoughEnvCfg):
             if self.scene.terrain.terrain_generator is not None:
                 self.scene.terrain.terrain_generator.curriculum = False
 
-        # Change the rewards functions to recover mode
+        # --- Change the rewards functions to recover mode ---
         # Root penalties
         self.rewards.lin_vel_z_l2.func = mdp.lin_vel_z_l2_up
         self.rewards.ang_vel_xy_l2.func = mdp.ang_vel_xy_l2_up

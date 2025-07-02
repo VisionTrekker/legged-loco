@@ -31,7 +31,7 @@ class AlienGoRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     )
 
 @configclass
-class AlienGoRoughRecoverPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+class AlienGoRoughRecoverPPORunnerCfg(AlienGoRoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
