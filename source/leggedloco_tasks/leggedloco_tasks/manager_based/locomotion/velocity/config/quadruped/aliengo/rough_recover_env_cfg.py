@@ -31,8 +31,8 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         # ------------------------------Sence------------------------------
         self.scene.robot = UNITREE_ALIENGO_DCMOTOR_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.robot.init_state.joint_pos = {
-            ".*L_hip_joint": -0.0,
-            ".*R_hip_joint": 0.0,
+            ".*L_hip_joint": -0.1,
+            ".*R_hip_joint": 0.1,
             "F[L,R]_thigh_joint": 0.8,
             "R[L,R]_thigh_joint": 0.8,
             ".*_calf_joint": -1.5,
@@ -122,8 +122,8 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
 
         # Root penalties
         self.rewards.lin_vel_z_l2.weight = -1.5
-        self.rewards.ang_vel_xy_l2.weight = -0.03
-        self.rewards.flat_orientation_l2.weight = -0.3
+        self.rewards.ang_vel_xy_l2.weight = -0.05
+        self.rewards.flat_orientation_l2.weight = -0.5
         self.rewards.base_height_l2.weight = -5.0
         self.rewards.base_height_l2.params["target_height"] = 0.43
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
@@ -137,11 +137,11 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_hip_l1", -0.1, [".*_hip_joint"])
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_thigh_l1", -0.1, [".*_thigh_joint"])
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_calf_l1", -0.1, [".*_calf_joint"])
-        self.rewards.joint_deviation_lowCmd.weight = -0.08  # -1.0
+        self.rewards.joint_deviation_lowCmd.weight = -0.1  # -1.0
+        self.rewards.stand_still_without_cmd.weight = -1.0  # -2.0
         self.rewards.joint_pos_limits.weight = -0.5  # -5.0
         self.rewards.joint_vel_limits.weight = -0.0
         self.rewards.joint_power.weight = -1e-5
-        self.rewards.stand_still_without_cmd.weight = -1.0  # -2.0
         self.rewards.joint_mirror.weight = -0.1  # -0.05
         self.rewards.joint_mirror.params["mirror_joints"] = [
             ["FR_(thigh|calf).*", "RL_(thigh|calf).*"],
@@ -149,13 +149,13 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         ]
 
         # Action penalties
-        self.rewards.action_rate_l2.weight = -0.002
+        self.rewards.action_rate_l2.weight = -0.01
         self.rewards.action_smoothness.weight = -0.01
 
         # Contact sensor
-        self.rewards.undesired_contacts.weight = -1.0
+        self.rewards.undesired_contacts.weight = -2.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
-        self.rewards.contact_forces.weight = -1e-4
+        self.rewards.contact_forces.weight = -1.5e-4
         self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
 
         # Velocity-tracking rewards
@@ -163,9 +163,9 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         self.rewards.track_ang_vel_z_exp.weight = 1.5
 
         # Others
-        self.rewards.feet_air_time.weight = 0.2
+        self.rewards.feet_air_time.weight = 0.25
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_air_time_variance.weight= -0.5
+        self.rewards.feet_air_time_variance.weight= -0.0
         self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_gait.weight = 0.05
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
@@ -181,8 +181,8 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         self.rewards.feet_height.weight = -0.0
         self.rewards.feet_height.params["target_height"] = 0.15
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_height_body.weight = -2.0  # -5.0
-        self.rewards.feet_height_body.params["target_height"] = -0.25
+        self.rewards.feet_height_body.weight = -2.5  # -5.0
+        self.rewards.feet_height_body.params["target_height"] = -0.27
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_distance_y_exp.weight = 0.0
         self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = [self.foot_link_name]
@@ -195,11 +195,11 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations------------------------------
-        # self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name, ".*_hip"]
-        self.terminations.illegal_contact = None
+        self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name, ".*_hip"]
+        # self.terminations.illegal_contact = None
 
         # ------------------------------Commands------------------------------
-        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_x = (0.3, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
 

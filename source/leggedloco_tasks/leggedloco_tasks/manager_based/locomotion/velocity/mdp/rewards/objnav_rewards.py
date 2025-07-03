@@ -301,7 +301,7 @@ def stand_still_without_cmd(
     command_threshold: float,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
-    """Penalize joint positions that deviate from the default one when no command."""
+    """Penalize joint positions that deviate from the default one when the command is very small."""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # compute out of limits constraints
@@ -309,7 +309,8 @@ def stand_still_without_cmd(
         torch.abs(asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]),
         dim=1
     )
-    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=-1) < command_threshold
+    command = env.command_manager.get_command(command_name)
+    reward *= (torch.linalg.norm(command, dim=-1) < command_threshold)
     return reward
 def stand_still_without_cmd_up(
     env: ManagerBasedRLEnv,

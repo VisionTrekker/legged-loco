@@ -470,15 +470,23 @@ class RewardsCfg:
         )
         setattr(self, attr_name, rew_term)
 
-    # commands > 0.1 或 base前进线速度 > 0.5的情况下，关节位置与默认位置的偏差 权重小
-    # commands <= 0.1 且 base前进线速度 <= 0.5的情况下，关节位置与默认位置的偏差 权重大
+    # commands > 0.06 或 base前进线速度 > 0.3的情况下，关节位置与默认位置的偏差 权重小
+    # commands <= 0.06 且 base前进线速度 <= 0.3的情况下，关节位置与默认位置的偏差 权重大
     joint_deviation_lowCmd = RewTerm(
         func=mdp.joint_deviation_lowCmd, weight=-0.0,
         params={
             "command_name": "base_velocity",
-            "command_threshold": 0.1,
-            "velocity_threshold": 0.5,
+            "command_threshold": 0.06,
+            "velocity_threshold": 0.3,
             "stand_still_scale": 5.0,
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+        },
+    )
+    stand_still_without_cmd = RewTerm(  # commands < 0.06 的情况下，关节位置与默认位置的偏差
+        func=mdp.stand_still_without_cmd, weight=-0.0,
+        params={
+            "command_name": "base_velocity",
+            "command_threshold": 0.06,
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
         },
     )
@@ -493,14 +501,6 @@ class RewardsCfg:
     joint_power = RewTerm(  # 关节实际扭矩 * 关节速度 之和
         func=mdp.joint_power, weight=-0.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
-    )
-    stand_still_without_cmd = RewTerm(  # commands < 0.1 的情况下，关节位置与默认位置的偏差
-        func=mdp.stand_still_without_cmd, weight=-0.0,
-        params={
-            "command_name": "base_velocity",
-            "command_threshold": 0.1,
-            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
-        },
     )
     joint_mirror = RewTerm(  # 对称关节的位置偏差
         func=mdp.joint_mirror, weight=-0.0,

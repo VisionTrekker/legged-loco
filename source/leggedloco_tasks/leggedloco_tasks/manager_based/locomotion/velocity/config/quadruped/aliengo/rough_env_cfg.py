@@ -138,10 +138,10 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_thigh_l1", -0.1, [".*_thigh_joint"])
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_calf_l1", -0.1, [".*_calf_joint"])
         self.rewards.joint_deviation_lowCmd.weight = -0.1  # -1.0
+        self.rewards.stand_still_without_cmd.weight = -2.0  # -2.0
         self.rewards.joint_pos_limits.weight = -3.0  # -5.0
         self.rewards.joint_vel_limits.weight = -0.0
         self.rewards.joint_power.weight = -1e-5
-        self.rewards.stand_still_without_cmd.weight = -2.0  # -2.0
         self.rewards.joint_mirror.weight = -0.1  # -0.05
         self.rewards.joint_mirror.params["mirror_joints"] = [
             ["FR_(thigh|calf).*", "RL_(thigh|calf).*"],

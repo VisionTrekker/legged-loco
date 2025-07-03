@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from isaaclab.utils import configclass
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.managers import TerminationTermCfg as DoneTerm
 
 from .velocity_env_cfg import LocomotionVelocityRoughEnvCfg
 import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
@@ -69,6 +71,16 @@ class LocomotionVelocityRoughRecoverEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height.func = mdp.feet_height_up
         self.rewards.feet_height_body.func = mdp.feet_height_body_up
         self.rewards.feet_distance_y_exp.func = mdp.feet_distance_y_exp_up
+
+        # --- Change the terminations to recover mode ---
+        self.terminations.illegal_contact = DoneTerm(
+            func=mdp.illegal_contact_delay,
+            params={
+                "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
+                "contact_threshold": 1.0,
+                "episode_length_threshold": 75.0,  # 1.5s / 0.02
+            }
+        )
 
     def disable_zero_weight_rewards(self):
         """If the weight of rewards is 0, set rewards to None"""
