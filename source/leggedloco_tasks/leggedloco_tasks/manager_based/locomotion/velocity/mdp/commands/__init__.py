@@ -25,10 +25,13 @@ from .goal_command_generator_cfg import GoalCommandGeneratorCfg
 from .robot_vel_command_generator import RobotVelCommandGenerator
 from .robot_vel_command_generator_cfg import RobotVelCommandGeneratorCfg
 
+from .uniform_level_vel_command_generator_cfg import UniformLevelVelocityCommandCfg
+
 __all__ = ["PathFollowerCommandGeneratorCfg", "PathFollowerCommandGenerator", 
            "PathFollowerCommandGeneratorGPTCfg", "PathFollowerCommandGeneratorGPT",
            "RLCommandGeneratorCfg", "RLCommandGenerator",
            "MidLevelCommandGeneratorCfg", "MidLevelCommandGenerator",
            "LowLevelCommandGeneratorCfg", "LowLevelCommandGenerator",
            "GoalCommandGenerator", "GoalCommandGeneratorCfg",
-           "RobotVelCommandGenerator", "RobotVelCommandGeneratorCfg"]
+           "RobotVelCommandGenerator", "RobotVelCommandGeneratorCfg",
+           "UniformLevelVelocityCommandCfg"]
