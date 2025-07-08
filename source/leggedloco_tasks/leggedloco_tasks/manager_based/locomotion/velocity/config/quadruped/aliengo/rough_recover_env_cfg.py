@@ -1,4 +1,4 @@
-
+import math
 from isaaclab.utils import configclass
 
 from leggedloco_tasks.manager_based.locomotion.velocity.velocity_recover_env_cfg import LocomotionVelocityRoughRecoverEnvCfg
@@ -226,9 +226,9 @@ class AlienGoRoughRecoverPlayEnvCfg(AlienGoRoughRecoverEnvCfg):
             self.scene.terrain.terrain_generator.num_cols = 5
             self.scene.terrain.terrain_generator.curriculum = False
             self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].proportion = 0.2
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.16)
+            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.20)
             self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].proportion = 0.2
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.16)
+            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.20)
             self.scene.terrain.terrain_generator.sub_terrains["boxes"].proportion = 0.1
             self.scene.terrain.terrain_generator.sub_terrains["random_rough"].proportion = 0.1
             self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope"].proportion = 0.1

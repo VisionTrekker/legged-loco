@@ -245,6 +245,34 @@ def joint_deviation_lowCmd_up(
     return reward
 
 
+def stand_still_without_cmd(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    command_threshold: float,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    """Penalize joint positions that deviate from the default one when the command is very small."""
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+    # compute out of limits constraints
+    reward = torch.sum(
+        torch.abs(asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]),
+        dim=1
+    )
+    command = env.command_manager.get_command(command_name)
+    reward *= (torch.linalg.norm(command, dim=-1) < command_threshold)
+    return reward
+def stand_still_without_cmd_up(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    command_threshold: float,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    reward = stand_still_without_cmd(env, command_name, command_threshold, asset_cfg)
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    return reward
+
+
 def joint_pos_limits(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Penalize joint positions if they cross the soft limits.
 
@@ -292,34 +320,6 @@ def joint_power(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityC
         torch.abs(asset.data.applied_torque[:, asset_cfg.joint_ids]) * torch.abs(asset.data.joint_vel[:, asset_cfg.joint_ids]),
         dim=1
     )
-    return reward
-
-
-def stand_still_without_cmd(
-    env: ManagerBasedRLEnv,
-    command_name: str,
-    command_threshold: float,
-    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
-) -> torch.Tensor:
-    """Penalize joint positions that deviate from the default one when the command is very small."""
-    # extract the used quantities (to enable type-hinting)
-    asset: Articulation = env.scene[asset_cfg.name]
-    # compute out of limits constraints
-    reward = torch.sum(
-        torch.abs(asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]),
-        dim=1
-    )
-    command = env.command_manager.get_command(command_name)
-    reward *= (torch.linalg.norm(command, dim=-1) < command_threshold)
-    return reward
-def stand_still_without_cmd_up(
-    env: ManagerBasedRLEnv,
-    command_name: str,
-    command_threshold: float,
-    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
-) -> torch.Tensor:
-    reward = stand_still_without_cmd(env, command_name, command_threshold, asset_cfg)
-    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
 

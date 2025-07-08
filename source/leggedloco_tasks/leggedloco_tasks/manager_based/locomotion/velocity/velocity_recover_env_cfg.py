@@ -78,7 +78,7 @@ class LocomotionVelocityRoughRecoverEnvCfg(LocomotionVelocityRoughEnvCfg):
             params={
                 "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
                 "contact_threshold": 1.0,
-                "episode_length_threshold": 75.0,  # 1.5s / 0.02
+                "episode_length_threshold": 100.0,  # 2.0s / 0.02
             }
         )
 

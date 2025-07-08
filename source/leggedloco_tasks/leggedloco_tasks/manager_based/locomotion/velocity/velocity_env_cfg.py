@@ -72,7 +72,7 @@ class VelocitySceneCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[0.4, 0.2]),
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.05, size=[0.3, 0.1]),
         debug_vis=True,
         mesh_prim_paths=["/World/ground"],
     )
@@ -473,23 +473,23 @@ class RewardsCfg:
         )
         setattr(self, attr_name, rew_term)
 
-    # commands > 0.06 或 base前进线速度 > 0.3的情况下，关节位置与默认位置的偏差 权重小
-    # commands <= 0.06 且 base前进线速度 <= 0.3的情况下，关节位置与默认位置的偏差 权重大
+    # commands > 0.1 或 base前进线速度 > 0.5的情况下，关节位置与默认位置的偏差 权重小
+    # commands <= 0.1 且 base前进线速度 <= 0.5的情况下，关节位置与默认位置的偏差 权重大
     joint_deviation_lowCmd = RewTerm(
         func=mdp.joint_deviation_lowCmd, weight=-0.0,
         params={
             "command_name": "base_velocity",
-            "command_threshold": 0.06,
-            "velocity_threshold": 0.3,
+            "command_threshold": 0.1,
+            "velocity_threshold": 0.5,
             "stand_still_scale": 5.0,
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
         },
     )
-    stand_still_without_cmd = RewTerm(  # commands < 0.06 的情况下，关节位置与默认位置的偏差
+    stand_still_without_cmd = RewTerm(  # commands < 0.1 的情况下，关节位置与默认位置的偏差
         func=mdp.stand_still_without_cmd, weight=-0.0,
         params={
             "command_name": "base_velocity",
-            "command_threshold": 0.06,
+            "command_threshold": 0.1,
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
         },
     )
