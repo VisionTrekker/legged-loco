@@ -198,14 +198,20 @@ def main():
         # set the camera view
         env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)
 
+    inital_actions = policy(obs)
+
     # simulate environment
     while simulation_app.is_running():
         # run everything in inference mode
         with torch.inference_mode():
             # agent stepping
             actions = policy(obs)
+
+            under_50_steps = env.episode_length_buf < 50  # 50*0.02 = 1s
+            effective_actions = torch.where(under_50_steps[:, None], inital_actions, actions)
+
             # env stepping
-            obs, _, _, infos = env.step(actions)
+            obs, _, _, infos = env.step(effective_actions)
             # import pdb; pdb.set_trace()
 
             if args_cli.video and len(frames) < args_cli.video_length:
