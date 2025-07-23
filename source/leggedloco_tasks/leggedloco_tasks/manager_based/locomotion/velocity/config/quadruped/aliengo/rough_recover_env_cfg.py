@@ -31,8 +31,8 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         # ------------------------------Sence------------------------------
         self.scene.robot = UNITREE_ALIENGO_DCMOTOR_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.robot.init_state.joint_pos = {
-            ".*L_hip_joint": -0.1,
-            ".*R_hip_joint": 0.1,
+            ".*L_hip_joint": 0.1,
+            ".*R_hip_joint": -0.1,
             "F[L,R]_thigh_joint": 0.8,
             "R[L,R]_thigh_joint": 0.8,
             ".*_calf_joint": -1.5,
