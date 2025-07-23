@@ -95,7 +95,7 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     # Blind
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0 --history_len 5 --run_name blind --max_iterations 2000 --save_interval 200 --headless
     # Blind + Recover
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Recover-AlienGo-v0 --history_len 5 --run_name blind_load --resume True --load_experiment aliengo_flat --load_run "2025-06-27_16-17-06_blind_good" --max_iterations 2500 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Recover-AlienGo-v0 --history_len 5 --run_name blind_load --resume --load_experiment aliengo_flat --load_run "2025-06-27_16-17-06_blind_good" --max_iterations 2500 --save_interval 200 --headless
     
     # Vision (lidar mid-360) (not verified after env_cfg updated)
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0  --history_len 5 --run_name lidar --max_iterations 2000 --save_interval 200 --headless
@@ -105,10 +105,10 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 * Two stages
     ```shell
     # Blind + Recover
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Recover-AlienGo-v0 --history_len 5 --run_name blind_loadflat --resume True --load_experiment aliengo_flatRecover --load_run "2025-07-01_15-36-26_blind_load" --max_iterations 2500 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Recover-AlienGo-v0 --history_len 5 --run_name blind_loadflat --resume --load_experiment aliengo_flatRecover --load_run "2025-07-01_15-36-26_blind_load" --max_iterations 2500 --save_interval 200 --headless
 
     # Vision (lidar mid-360) (not verified after env_cfg updated)
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_loadflat --resume True --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2500 --save_interval 200 --headless
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_loadflat --resume --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2500 --save_interval 200 --headless
     ```
 
 * Scratch
