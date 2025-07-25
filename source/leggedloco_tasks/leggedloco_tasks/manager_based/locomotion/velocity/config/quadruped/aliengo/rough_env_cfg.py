@@ -1,4 +1,4 @@
-
+import math
 from isaaclab.utils import configclass
 
 from leggedloco_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
@@ -98,7 +98,7 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
             "pose_range": {
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
-                "z": (0.0, 0.1),
+                "z": (0.0, 0.0),
                 # "roll": (-3.14, 3.14),
                 # "pitch": (-3.14, 3.14),
                 # "yaw": (-3.14, 3.14),
@@ -197,9 +197,12 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # self.terminations.illegal_contact = None
 
         # ------------------------------Commands------------------------------
-        self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.heading = (-math.pi, math.pi)
+        self.commands.base_velocity.ranges_limits.lin_vel_x = (-1.0, 1.5)
+        self.commands.base_velocity.ranges_limits.lin_vel_y = (-1.0, 1.0)
 
 
 @configclass
@@ -241,7 +244,7 @@ class AlienGoRoughPlayEnvCfg(AlienGoRoughEnvCfg):
             "pose_range": {
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
-                "z": (0.0, 0.1),
+                "z": (0.0, 0.0),
                 # "roll": (-3.14, 3.14),
                 # "pitch": (-3.14, 3.14),
                 # "yaw": (-3.14, 3.14),
