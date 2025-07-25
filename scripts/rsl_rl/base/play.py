@@ -10,7 +10,6 @@
 import os
 import sys
 import argparse
-import subprocess
 
 from isaaclab.app import AppLauncher
 
@@ -20,7 +19,6 @@ import cli_args  # isort: skip
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
-# parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU pipeline.")
 parser.add_argument(
     "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
 )
@@ -34,6 +32,7 @@ parser.add_argument("--use_cnn", action="store_true", default=None, help="Name o
 parser.add_argument("--arm_fixed", action="store_true", default=False, help="Fix the robot's arms.")
 parser.add_argument("--use_rnn", action="store_true", default=False, help="Use RNN in the actor-critic model.")
 parser.add_argument("--history_length", default=0, type=int, help="Length of history buffer.")
+parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
 parser.add_argument("--keyboard", action="store_true", default=False, help="Whether to use keyboard.")
 
 # append RSL-RL cli arguments
@@ -52,11 +51,12 @@ simulation_app = app_launcher.app
 """Rest everything follows."""
 
 import gymnasium as gym
-import os
+import time
 import math
 import torch
 import imageio
 
+import rsl_rl_utils
 from rsl_rl.runners import OnPolicyRunner
 
 from isaaclab.devices import Se2Keyboard
@@ -75,7 +75,6 @@ from isaaclab_rl.rsl_rl import (
     export_policy_as_onnx
 )
 
-import rsl_rl_utils
 from leggedloco_tasks.manager_based.locomotion.velocity.config import *
 from leggedloco_tasks.manager_based.locomotion.velocity.utils import RslRlVecEnvHistoryWrapper
 
@@ -89,7 +88,7 @@ def main():
     #     args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
     # )
     env_cfg = parse_env_cfg(
-        args_cli.task, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
+        args_cli.task, device=args_cli.device, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
     )
     agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(args_cli.task, args_cli)
 
@@ -105,11 +104,14 @@ def main():
         env_cfg.observations.policy.velocity_commands = ObsTerm(
             func=lambda env: torch.tensor(controller.advance(), dtype=torch.float32).unsqueeze(0).to(env.device),
         )
+        env_cfg.observations.proprio.velocity_commands = ObsTerm(
+            func=lambda env: torch.tensor(controller.advance(), dtype=torch.float32).unsqueeze(0).to(env.device),
+        )
 
     # specify directory for logging experiments
     log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
     log_root_path = os.path.abspath(log_root_path)
-    print(f"[INFO] Logging experiment in directory: {log_root_path}")
+    print(f"[INFO] Loading experiment in directory: {log_root_path}")
     # specify directory for logging runs: {time-stamp}_{run_name}
     log_dir = os.path.join(log_root_path, args_cli.load_run)
     print(f"[INFO] Loading run from directory: {log_dir}")
@@ -179,10 +181,12 @@ def main():
     )
     export_policy_as_jit(
         policy=policy_nn,
-        normalizer=None,  # ppo_runner.obs_normalizer
+        normalizer=ppo_runner.obs_normalizer,
         path=export_model_dir,
         filename="policy.jit"
     )
+
+    dt = env.unwrapped.step_dt
 
     # reset environment
     obs, _ = env.get_observations()
@@ -202,6 +206,7 @@ def main():
 
     # simulate environment
     while simulation_app.is_running():
+        start_time = time.time()
         # run everything in inference mode
         with torch.inference_mode():
             # agent stepping
@@ -211,28 +216,33 @@ def main():
             effective_actions = torch.where(under_50_steps[:, None], inital_actions, actions)
 
             # env stepping
-            obs, _, _, infos = env.step(effective_actions)
-            # import pdb; pdb.set_trace()
+            obs, _, _, _ = env.step(actions)
 
-            if args_cli.video and len(frames) < args_cli.video_length:
-                base_env = env.unwrapped
-                frame = base_env.render()
-                frames.append(frame)
+        if args_cli.video and len(frames) < args_cli.video_length:
+            base_env = env.unwrapped
+            frame = base_env.render()
+            frames.append(frame)
 
-                robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
-                robot_quat_w = env.unwrapped.scene["robot"].data.root_quat_w[0].detach().cpu().numpy()
-                roll, pitch, yaw = quat2eulers(robot_quat_w[0], robot_quat_w[1], robot_quat_w[2], robot_quat_w[3])
-                cam_eye = (robot_pos_w[0] - 15.0, robot_pos_w[1] + 36.0, robot_pos_w[2] + 7.0)
-                cam_target = (robot_pos_w[0] + 3.0, robot_pos_w[1] + 18.0, robot_pos_w[2])
-                # set the camera view
-                env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)
+            robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
+            robot_quat_w = env.unwrapped.scene["robot"].data.root_quat_w[0].detach().cpu().numpy()
+            roll, pitch, yaw = quat2eulers(robot_quat_w[0], robot_quat_w[1], robot_quat_w[2], robot_quat_w[3])
+            cam_eye = (robot_pos_w[0] - 15.0, robot_pos_w[1] + 36.0, robot_pos_w[2] + 7.0)
+            cam_target = (robot_pos_w[0] + 3.0, robot_pos_w[1] + 18.0, robot_pos_w[2])
+            # set the camera view
+            env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)
 
-            if args_cli.video and len(frames) == args_cli.video_length:
+            # Exit the play loop after recording one video
+            if len(frames) == args_cli.video_length:
                 break
 
-            if args_cli.keyboard:
-                rsl_rl_utils.camera_follow(env)
-    
+        if args_cli.keyboard:
+            rsl_rl_utils.camera_follow(env)
+
+        # time delay for real-time evaluation
+        sleep_time = dt - (time.time() - start_time)
+        if args_cli.real_time and sleep_time > 0:
+            time.sleep(sleep_time)
+
     writer = imageio.get_writer(os.path.join(log_dir, f"{args_cli.load_run}.mp4"), fps=50)
     for frame in frames:
         writer.append_data(frame)
