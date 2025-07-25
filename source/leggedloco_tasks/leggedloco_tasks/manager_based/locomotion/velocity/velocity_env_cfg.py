@@ -674,9 +674,15 @@ class TerminationsCfg:
     )
 
     # drop
-    base_drop = DoneTerm(
-        func=mdp.root_height_below_minimum,
-        params={"minimum_height": -20},
+    # base_drop = DoneTerm(
+    #     func=mdp.root_height_below_minimum,
+    #     params={"minimum_height": -20},
+    # )
+
+    terrain_out_of_bounds = DoneTerm(
+        func=mdp.terrain_out_of_bounds,
+        params={"asset_cfg": SceneEntityCfg("robot"), "distance_buffer": 3.0},
+        time_out=True,
     )
 
 
