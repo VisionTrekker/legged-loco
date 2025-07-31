@@ -38,6 +38,7 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
             ".*_calf_joint": -1.5,
         }
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
+        self.scene.height_scanner_base.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
         # no lidar sensor
         self.scene.lidar_scanner = None
 
@@ -75,7 +76,7 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         self.events.randomize_rigid_body_material.params["restitution_range"] = (0.0, 0.3)
         self.events.randomize_rigid_body_mass.params["asset_cfg"].body_names = [self.base_link_name]
         self.events.randomize_rigid_body_mass.params["mass_distribution_params"] = (0.0, 3.0)
-        self.events.randomize_rigid_body_inertia.params["inertia_distribution_params"] = (0.75, 1.25)
+        self.events.randomize_rigid_body_inertia.params["inertia_distribution_params"] = (0.8, 1.2)
         self.events.randomize_rigid_body_com.params["asset_cfg"].body_names = [self.base_link_name]
 
         # reset
@@ -211,7 +212,7 @@ class AlienGoRoughRecoverPlayEnvCfg(AlienGoRoughRecoverEnvCfg):
         # make a smaller scene for play
         self.scene.num_envs = 50
         # spawn the robot randomly in the grid (instead of their terrain levels)
-        self.scene.terrain.max_init_terrain_level = 5
+        self.scene.terrain.max_init_terrain_level = None
         # reduce the number of terrains to save memory
         if self.scene.terrain.terrain_generator is not None:
             self.scene.terrain.terrain_generator.num_rows = 5
@@ -236,14 +237,13 @@ class AlienGoRoughRecoverPlayEnvCfg(AlienGoRoughRecoverEnvCfg):
         # ------------------------------Events------------------------------
         # remove random pushing event
         self.events.randomize_apply_external_force_torque = None
-        self.events.randomize_actuator_gains = None
         self.events.randomize_reset_base.params = {
             "pose_range": {
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
-                "roll": (-3.14, 3.14),
-                "pitch": (-3.14, 3.14),
                 "z": (0.0, 0.0),
+                "roll": (1.57, 3.14),
+                "pitch": (-1.57, 1.57),
                 "yaw": (-3.14, 3.14),
             },
             "velocity_range": {

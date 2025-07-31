@@ -10,19 +10,20 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 
 ## Installation
 
-1. Create a new conda environment with python 3.10.
+1. Create a new conda environment with python 3.11. (Use isaaclab 2.2 + isaacsim 5.0 needs 3.11)
     ```shell
-    conda create -n isaaclab python=3.10
+    conda create -n isaaclab python=3.11
     conda activate isaaclab
     ```
 
-2. Install PyTorch with CUDA 121.
+2. Install PyTorch with CUDA 128.
     ```shell
     pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
     ```
    For 50 series GPU, you could install PyTorch 2.7.0 with CUDA 128.
     ```shell
-    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+    pip3 install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+
     ``` 
 
 3. To update pip.

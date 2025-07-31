@@ -63,7 +63,7 @@ class VelocitySceneCfg(InteractiveSceneCfg):
     height_scanner = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
-        attach_yaw_only=True,
+        attach_yaw_only=True,  #  isaacsim 4.5: attach_yaw_only=True; isaacsim 5.0: ray_alignment='yaw'
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
@@ -72,7 +72,7 @@ class VelocitySceneCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=0.05, size=[0.3, 0.1]),
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.05, size=[0.4, 0.2]),
         debug_vis=True,
         mesh_prim_paths=["/World/ground"],
     )

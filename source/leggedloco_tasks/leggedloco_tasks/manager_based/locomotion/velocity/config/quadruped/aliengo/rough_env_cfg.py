@@ -174,7 +174,7 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height.params["target_height"] = 0.15
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_height_body.weight = -1.0  # -5.0
-        self.rewards.feet_height_body.params["target_height"] = -0.25
+        self.rewards.feet_height_body.params["target_height"] = -0.27
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_distance_y_exp.weight = 0.0
         self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = [self.foot_link_name]
