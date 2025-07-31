@@ -27,7 +27,14 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
 def get_proprio_obs_dim(env: ManagerBasedRLEnv) -> int:
     """Returns the dimension of the proprioceptive observations."""
-    return env.unwrapped.observation_manager.compute_group("proprio").shape[1]
+    try:
+        return env.unwrapped.observation_manager.compute_group("proprio").shape[1]
+    except:
+        return 0
+
+def get_policy_obs_dim(env: ManagerBasedRLEnv) -> int:
+    """Returns the dimension of the observations."""
+    return env.unwrapped.observation_manager.compute_group("policy").shape[1]
 
 
 class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
@@ -48,12 +55,18 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
         super().__init__(env)
 
         self.history_length = history_length
+        self.obs_dim = get_policy_obs_dim(env)
         self.proprio_obs_dim = get_proprio_obs_dim(env)
-        # (num_envs, 9, 45)
-        self.proprio_obs_buf = torch.zeros(self.num_envs, self.history_length, self.proprio_obs_dim,
-                                                    dtype=torch.float, device=self.unwrapped.device)
+
+        if self.proprio_obs_dim > 0:
+            # (num_envs, 5, 45)
+            self.proprio_obs_buf = torch.zeros(self.num_envs, self.history_length, self.proprio_obs_dim, dtype=torch.float, device=self.unwrapped.device)
+        else:
+            self.history_length += 1
+            # (num_envs, 6, 45)
+            self.his_obs_buf = torch.zeros(self.num_envs, self.history_length, self.obs_dim, dtype=torch.float, device=self.unwrapped.device)
         
-        self.clip_actions = 20.0
+        self.clip_actions = 100.0
 
     """
     Properties
@@ -64,11 +77,16 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
             obs_dict = self.unwrapped.observation_manager.compute()
         else:
             obs_dict = self.unwrapped._get_observations()
-        proprio_obs, obs = obs_dict["proprio"], obs_dict["policy"]  # (num_envs, 45), (num_envs, 45)
-        # (num_envs, 9, 45)
-        self.proprio_obs_buf = torch.cat([proprio_obs.unsqueeze(1)] * self.history_length, dim=1)
-        proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)  # (num_envs, 9*45)
-        curr_obs = torch.cat([obs, proprio_obs_history], dim=1)  # (num_envs, 45 + 9*45)
+        obs = obs_dict["policy"]  # (num_envs, 45)
+        if self.proprio_obs_dim > 0:
+            proprio_obs = obs_dict["proprio"]  # (num_envs, 45)
+            self.proprio_obs_buf = torch.cat([proprio_obs.unsqueeze(1)] * self.history_length, dim=1)  # (num_envs, 5, 45)
+            proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)  # (num_envs, 5*45)
+            curr_obs = torch.cat([obs, proprio_obs_history], dim=1)  # (num_envs, 45 + 5*45)
+        else:
+            self.his_obs_buf = torch.cat([obs.unsqueeze(1)] * self.history_length, dim=1)  # (num_envs, 6, 45)
+            obs_history = self.his_obs_buf.view(self.num_envs, -1)  # (num_envs, 6*45)
+            curr_obs = obs_history
         obs_dict["policy"] = curr_obs
 
         return curr_obs, {"observations": obs_dict}
@@ -82,8 +100,10 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
         # compute dones for compatibility with RSL-RL
         dones = (terminated | truncated).to(dtype=torch.long)
         # move extra observations to the extras dict
-        # (num_envs, 45), (num_envs, 45)
-        proprio_obs, obs = obs_dict["proprio"], obs_dict["policy"]
+        # (num_envs, 45)
+        obs = obs_dict["policy"]
+        if self.proprio_obs_dim > 0:
+            proprio_obs = obs_dict["proprio"]  # (num_envs, 45)
         # print("============== Height Map ==============")
         # print(obs_dict["test_height_map"])
         extras["observations"] = obs_dict
@@ -93,20 +113,31 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
             extras["time_outs"] = truncated
 
         # update obsservation history buffer & reset the history buffer for done environments
-        # (num_envs, 9, 45)
-        # 新重置的 envs 对应位置为 全0的(9, 45)
-        # 不重置的 envs 对应位置为 1个新本体观测 + 8个旧本体观测
-        self.proprio_obs_buf = torch.where(
-            (self.episode_length_buf < 1)[:, None, None], 
-            torch.stack([torch.zeros_like(proprio_obs)] * self.history_length, dim=1),
-            torch.cat([
-                proprio_obs.unsqueeze(1),
-                self.proprio_obs_buf[:, :-1],
-            ], dim=1)
-        )
-        proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)  # (num_envs, 9*45)
-        # (num_envs, 45 + 9*45) : 新的观测 + 5个本体观测
-        curr_obs = torch.cat([obs, proprio_obs_history], dim=1)
+        # (num_envs, 6, 45)
+        # 新重置的 envs 对应位置为 全0的(6, 45)
+        # 不重置的 envs 对应位置为 1个新观测 + 5个旧观测
+        if self.proprio_obs_dim > 0:
+            self.proprio_obs_buf = torch.where(
+                (self.episode_length_buf < 1)[:, None, None],
+                torch.stack([torch.zeros_like(proprio_obs)] * self.history_length, dim=1),
+                torch.cat([
+                    proprio_obs.unsqueeze(1),
+                    self.proprio_obs_buf[:, :-1],
+                ], dim=1)
+            )
+            proprio_obs_history = self.proprio_obs_buf.view(self.num_envs, -1)  # (num_envs, 5*45)
+            curr_obs = torch.cat([obs, proprio_obs_history], dim=1)
+        else:
+            self.his_obs_buf = torch.where(
+                (self.episode_length_buf < 1)[:, None, None],
+                torch.stack([torch.zeros_like(obs)] * self.history_length, dim=1),
+                torch.cat([
+                    obs.unsqueeze(1),
+                    self.his_obs_buf[:, :-1],
+                ], dim=1)
+            )
+            obs_history = self.his_obs_buf.view(self.num_envs, -1)  # (num_envs, 6*45)
+            curr_obs = obs_history
         extras["observations"]["policy"] = curr_obs
 
         # return the step information
@@ -114,7 +145,10 @@ class RslRlVecEnvHistoryWrapper(RslRlVecEnvWrapper):
 
     def update_command(self, command: torch.Tensor) -> None:
         """Updates the command for the environment."""
-        self.proprio_obs_buf[:, -1, 6:9] = command
+        if self.proprio_obs_dim > 0:
+            self.proprio_obs_buf[:, 0, 6:9] = command
+        else:
+            self.his_obs_buf[:, 0, 6:9] = command
 
     def close(self):  # noqa: D102
         return self.env.close()

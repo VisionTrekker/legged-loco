@@ -122,7 +122,8 @@ class AlienGoFlatPlayEnvCfg(AlienGoFlatEnvCfg):
         # ------------------------------Observations------------------------------
         # disable randomization for play
         self.observations.policy.enable_corruption = False
-        self.observations.proprio.enable_corruption = False
+        if self.observations.proprio is not None:
+            self.observations.proprio.enable_corruption = False
 
         # ------------------------------Events------------------------------
         # remove random pushing event

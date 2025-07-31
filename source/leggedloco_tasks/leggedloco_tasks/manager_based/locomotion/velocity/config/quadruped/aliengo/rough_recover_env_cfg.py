@@ -52,15 +52,7 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         self.observations.policy.joint_vel.params["asset_cfg"].joint_names = self.joint_names
         self.observations.policy.lidar_scan = None
 
-        self.observations.proprio.base_lin_vel.scale = 2.0
-        self.observations.proprio.base_lin_vel = None
-        self.observations.proprio.base_ang_vel.scale = 0.25
-        self.observations.proprio.velocity_commands.scale = (2.0, 2.0, 0.25)
-        self.observations.proprio.joint_pos.scale = 1.0
-        self.observations.proprio.joint_pos.params["asset_cfg"].joint_names = self.joint_names
-        self.observations.proprio.joint_vel.scale = 0.05
-        self.observations.proprio.joint_vel.params["asset_cfg"].joint_names = self.joint_names
-        self.observations.proprio.lidar_scan = None
+        self.observations.proprio = None
 
         self.observations.critic.base_lin_vel.scale = 2.0
         self.observations.critic.base_ang_vel.scale = 0.25
@@ -238,7 +230,8 @@ class AlienGoRoughRecoverPlayEnvCfg(AlienGoRoughRecoverEnvCfg):
         # ------------------------------Observations------------------------------
         # disable randomization for play
         self.observations.policy.enable_corruption = False
-        self.observations.proprio.enable_corruption = False
+        if self.observations.proprio is not None:
+            self.observations.proprio.enable_corruption = False
 
         # ------------------------------Events------------------------------
         # remove random pushing event
