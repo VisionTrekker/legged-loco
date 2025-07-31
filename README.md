@@ -133,4 +133,33 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 
 ## Add New Environments
 
-You can add additional environments by placing them under `/source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/config`.
+### convert urdf to usd
+    ```shell
+    python scripts/tools/convert_urdf.py --input <INPUT_URDF> --output <OUTPUT_USD>
+    ```
+> [!NOTE]
+> There is a problem with the urdf conversion of the current Isaacsim version. Please checkout your IsaacLab to **v1.4.1**.
+
+
+### configure new env
+You can add additional environments by placing them under `/source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/velocity/config`.
+
+```tree
+source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/velocity
+├── __init__.py
+└── velocity
+    ├── config
+    │   ├── humanoid
+    │   └── quadruped
+    │       └── unitree_a1
+    │           ├── agent  # <- this is where we store the learning agent configurations
+    │           ├── __init__.py  # <- this is where we register the environment and configurations to gym registry
+    │           ├── flat_env_cfg.py
+    │           └── rough_env_cfg.py
+    ├── __init__.py
+    ├── mdp
+    ├── utils
+    │   └── wrappers.py
+    ├── velocity_env_cfg.py  # <- this is the base task configuration
+    └── velocity_recover_env_cfg.py
+```
