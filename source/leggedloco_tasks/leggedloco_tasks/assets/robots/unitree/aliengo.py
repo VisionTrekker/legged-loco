@@ -21,7 +21,7 @@ from leggedloco_tasks.assets import ISAACLAB_ASSETS_DATA_DIR
 # DCMotor
 ALIENGO_ACTUATOR_DCMOTOR_HIP_CFG = DCMotorCfg(
     joint_names_expr=[".*_hip_joint"],
-    effort_limit=44.0,
+    effort_limit=44.0,  # 35.2
     saturation_effort=44.0,
     velocity_limit=20.0,
     stiffness=40.0,
@@ -30,7 +30,7 @@ ALIENGO_ACTUATOR_DCMOTOR_HIP_CFG = DCMotorCfg(
 )
 ALIENGO_ACTUATOR_DCMOTOR_THIGH_CFG = DCMotorCfg(
     joint_names_expr=[".*_thigh_joint"],
-    effort_limit=44.0,
+    effort_limit=44.0,  # 35.2
     saturation_effort=44.0,
     velocity_limit=20.0,
     stiffness=40.0,
@@ -39,7 +39,7 @@ ALIENGO_ACTUATOR_DCMOTOR_THIGH_CFG = DCMotorCfg(
 )
 ALIENGO_ACTUATOR_DCMOTOR_CALF_CFG = DCMotorCfg(
     joint_names_expr=[".*_calf_joint"],
-    effort_limit=55.0,
+    effort_limit=55.0,  # 44.4
     saturation_effort=55.0,
     velocity_limit=15.0,
     stiffness=40.0,
@@ -50,7 +50,7 @@ ALIENGO_ACTUATOR_DCMOTOR_CALF_CFG = DCMotorCfg(
 # DelayedPDActuator
 ALIENGO_ACTUATOR_DELAYEDPD_HIP_CFG = DelayedPDActuatorCfg(
     joint_names_expr=[".*_hip_joint"],
-    effort_limit=44.0,
+    effort_limit=44.0,  # 35.2
     velocity_limit=20.0,
     stiffness=40.0,
     damping=2.0,
@@ -60,7 +60,7 @@ ALIENGO_ACTUATOR_DELAYEDPD_HIP_CFG = DelayedPDActuatorCfg(
 )
 ALIENGO_ACTUATOR_DELAYEDPD_THIGH_CFG = DelayedPDActuatorCfg(
     joint_names_expr=[".*_thigh_joint"],
-    effort_limit=44.0,
+    effort_limit=44.0,  # 35.2
     velocity_limit=20.0,
     stiffness=40.0,
     damping=2.0,
@@ -70,7 +70,7 @@ ALIENGO_ACTUATOR_DELAYEDPD_THIGH_CFG = DelayedPDActuatorCfg(
 )
 ALIENGO_ACTUATOR_DELAYEDPD_CALF_CFG = DelayedPDActuatorCfg(
     joint_names_expr=[".*_calf_joint"],
-    effort_limit=55.0,
+    effort_limit=55.0,  # 44.4
     velocity_limit=15.0,
     stiffness=40.0,
     damping=2.0,
