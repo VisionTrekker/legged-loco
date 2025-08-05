@@ -98,7 +98,7 @@ ROUGH_BLIND_TERRAINS_CFG = TerrainGeneratorCfg(
     slope_threshold=0.75,
     use_cache=False,
     sub_terrains={
-        "pyramid_stairs": PYRAMID_STAIRS.replace(proportion=0.3),
+        "pyramid_stairs": PYRAMID_STAIRS.replace(proportion=0.3, step_height_range=(0.02, 0.23)),
         "pyramid_stairs_inv": PYRAMID_STAIRS_INV.replace(proportion=0.3, step_height_range=(0.02, 0.23)),
         "boxes": BOX.replace(proportion=0.1, grid_height_range=(0.02, 0.08)),
         "random_rough": RANDOM_ROUGH.replace(proportion=0.1, noise_range=(0.02, 0.06), noise_step=0.01),
