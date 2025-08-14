@@ -7,7 +7,7 @@ from leggedloco_tasks.manager_based.locomotion.velocity.velocity_env_cfg import 
 # Pre-defined configs
 ##
 # use local assets
-from leggedloco_tasks.assets.robots.unitree import UNITREE_ALIENGO_DCMOTOR_CFG
+from leggedloco_tasks.assets.robots.unitree import UNITREE_ALIENGO_CFG
 from leggedloco_tasks.assets.terrains import ROUGH_TERRAINS_CFG
 
 
@@ -31,7 +31,7 @@ class AlienGoRoughLidarEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # ------------------------------Sence------------------------------
         self.scene.terrain.terrain_generator = ROUGH_TERRAINS_CFG
-        self.scene.robot = UNITREE_ALIENGO_DCMOTOR_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.robot = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
         self.scene.lidar_scanner.prim_path = "{ENV_REGEX_NS}/Robot/" + self.foot_link_name
 

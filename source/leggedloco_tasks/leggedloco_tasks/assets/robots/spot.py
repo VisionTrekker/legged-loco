@@ -13,8 +13,18 @@ The following configuration parameters are available:
 from uwlab_assets import UWLAB_CLOUD_ASSETS_DIR
 
 import isaaclab.sim as sim_utils
-from isaaclab.actuators import DelayedPDActuatorCfg, RemotizedPDActuatorCfg
+from isaaclab.actuators import DelayedPDActuatorCfg, ImplicitActuatorCfg, RemotizedPDActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
+
+from isaaclab.envs.mdp.actions.actions_cfg import JointPositionActionCfg
+
+SPOT_JOINT_POSITION: JointPositionActionCfg = JointPositionActionCfg(
+    asset_name="robot", joint_names=[".*"], scale=0.2, use_default_offset=True
+)
+
+ARM_DEFAULT_JOINT_POSITION: JointPositionActionCfg = JointPositionActionCfg(
+    asset_name="arm", joint_names=[".*"], scale=0.2, use_default_offset=True
+)
 
 # Note: This data was collected by the Boston Dynamics AI Institute.
 joint_parameter_lookup = [
@@ -180,3 +190,66 @@ SPOT_CFG = ArticulationCfg(
     },
 )
 """Configuration for the Boston Dynamics Spot robot."""
+
+
+SPOT_WITH_ARM_CFG = ArticulationCfg(
+    spawn=sim_utils.UsdFileCfg(
+        usd_path=f"{UWLAB_CLOUD_ASSETS_DIR}/Robots/BostonDynamic/SpotWithArm/spot_with_arm.usd",
+        activate_contact_sensors=True,
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            disable_gravity=False,
+            retain_accelerations=False,
+            linear_damping=0.0,
+            angular_damping=0.0,
+            max_linear_velocity=1000.0,
+            max_angular_velocity=1000.0,
+            max_depenetration_velocity=1.0,
+        ),
+        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
+            enabled_self_collisions=True, solver_position_iteration_count=4, solver_velocity_iteration_count=0
+        ),
+    ),
+    init_state=ArticulationCfg.InitialStateCfg(
+        pos=(0.0, 0.0, 0.5),
+        joint_pos={
+            "[fh]l_hx": 0.1,  # all left hip_x
+            "[fh]r_hx": -0.1,  # all right hip_x
+            "f[rl]_hy": 0.9,  # front hip_y
+            "h[rl]_hy": 1.1,  # hind hip_y
+            ".*_kn": -1.5,  # all knees
+            "arm0_sh1": -3.14,  # arm shoulder
+            "arm0_el0": 3.14,  # arm elbow
+            "arm0_el1": 0.0,  # arm elbow roll
+            "arm0_wr0": 0.0,  # arm wrist pitch
+            "arm0_wr1": 0.0,  # arm wrist roll
+            "arm0_f1x": 0.0,  # gripper position
+        },
+        joint_vel={".*": 0.0},
+    ),
+    actuators={
+        "spot_hip": DelayedPDActuatorCfg(
+            joint_names_expr=[".*_h[xy]"],
+            effort_limit=45.0,
+            stiffness=60.0,
+            damping=1.5,
+            min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+            max_delay=4,  # physics time steps (max: 2.0*4=8.0ms)
+        ),
+        "spot_knee": RemotizedPDActuatorCfg(
+            joint_names_expr=[".*_kn"],
+            joint_parameter_lookup=joint_parameter_lookup,
+            effort_limit=None,  # torque limits are handled based experimental data (`RemotizedPDActuatorCfg.data`)
+            stiffness=60.0,
+            damping=1.5,
+            min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+            max_delay=4,  # physics time steps (max: 2.0*4=8.0ms)
+        ),
+        "spot_arm": ImplicitActuatorCfg(
+            joint_names_expr=["arm0.*"],
+            effort_limit=None,
+            stiffness=60.0,
+            damping=1.5,
+        ),
+    },
+)
+"""Configuration for the Boston Dynamics Spot robot with arm."""

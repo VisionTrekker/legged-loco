@@ -7,7 +7,7 @@ from leggedloco_tasks.manager_based.locomotion.velocity.velocity_recover_env_cfg
 # Pre-defined configs
 ##
 # use local assets
-from leggedloco_tasks.assets.robots.unitree import UNITREE_ALIENGO_DCMOTOR_CFG
+from leggedloco_tasks.assets.robots.unitree import UNITREE_ALIENGO_CFG
 
 
 @configclass
@@ -29,7 +29,7 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         super().__post_init__()
 
         # ------------------------------Sence------------------------------
-        self.scene.robot = UNITREE_ALIENGO_DCMOTOR_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.robot = UNITREE_ALIENGO_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.robot.init_state.joint_pos = {
             ".*L_hip_joint": 0.0,
             ".*R_hip_joint": -0.0,
