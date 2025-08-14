@@ -59,7 +59,7 @@ import imageio
 import rsl_rl_utils
 from rsl_rl.runners import OnPolicyRunner
 
-from isaaclab.devices import Se2Keyboard
+from isaaclab.devices import Se2Keyboard, Se2KeyboardCfg
 from isaaclab.envs import ManagerBasedRLEnvCfg
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.utils.dict import print_dict
@@ -95,9 +95,11 @@ def main():
         env_cfg.terminations.time_out = None
         env_cfg.commands.base_velocity.debug_vis = False
         controller = Se2Keyboard(
-            v_x_sensitivity=env_cfg.commands.base_velocity.ranges.lin_vel_x[1],
-            v_y_sensitivity=env_cfg.commands.base_velocity.ranges.lin_vel_y[1],
-            omega_z_sensitivity=env_cfg.commands.base_velocity.ranges.ang_vel_z[1],
+            Se2KeyboardCfg(
+                v_x_sensitivity=env_cfg.commands.base_velocity.ranges.lin_vel_x[1],
+                v_y_sensitivity=env_cfg.commands.base_velocity.ranges.lin_vel_y[1],
+                omega_z_sensitivity=env_cfg.commands.base_velocity.ranges.ang_vel_z[1],
+            )
         )
         env_cfg.observations.policy.velocity_commands = ObsTerm(
             func=lambda env: torch.tensor(controller.advance(), dtype=torch.float32).unsqueeze(0).to(env.device),

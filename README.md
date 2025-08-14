@@ -18,25 +18,22 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 
 2. Install PyTorch with CUDA 128.
     ```shell
-    pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+    pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128
     ```
-   For 50 series GPU, you could install PyTorch 2.7.0 with CUDA 128.
-    ```shell
-    pip3 install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
-
-    ``` 
 
 3. To update pip.
     ```shell
     pip install --upgrade pip
     ```
 
-4. Make sure that Isaac Sim is installed on your machine. Otherwise follow [this guideline](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/pip_installation.html) to install it. Now it is suit for Isaac Sim 4.5.0 + IsaacLab 2.1.0. On Ubuntu 22.04 or higher, you could install it via pip:
+4. Install the Isaac Sim5.0 [this guideline](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/pip_installation.html) to 
+   install it (suit for Isaac Sim 5.0 + IsaacLab 2.2.0). On Ubuntu 22.04 or higher, you could install it via pip:
     ```shell
-    pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
+    pip install "isaacsim[all,extscache]==5.0.0" --extra-index-url https://pypi.nvidia.com --timeout=600 --retries=5 --resume-retries=5
     ```
+   or from source follow Isaac Sim [github guideline](https://github.com/isaac-sim/IsaacSim.git)
 
-5. Clone the Isaac Lab 2.1.0 repository and run the Isaac Lab installer script.
+5. Clone the Isaac Lab 2.2.0 repository and run the Isaac Lab installer script.
     ```shell
     git clone git@github.com:isaac-sim/IsaacLab.git
     cd IsaacLab
@@ -44,6 +41,15 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     sudo apt install cmake build-essential
     # install all the learning frameworks.
     ./isaaclab.sh --install # or "./isaaclab.sh -i"
+    ```
+    if Isaac Sim is built from source, the IsaacLab installation is as follows:
+    ```shell
+    git clone https://github.com/isaac-sim/IsaacLab.git
+    cd IsaacLab
+    ln -s ../isaacsim/_build/linux-x86_64/release _isaac_sim
+    ./isaaclab.sh --install
+    # setup for conda environment (everytime when open new termination!)
+    source _isaac_sim/setup_conda_env.sh
     ```
 
 5. Additionally install tasks in this repo.
@@ -107,7 +113,7 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```shell
     # Blind + Recover
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Recover-AlienGo-v0 --history_len 5 --run_name blind_loadflat --resume --load_experiment aliengo_flatRecover --load_run "2025-07-01_15-36-26_blind_load" --max_iterations 2500 --save_interval 200 --headless
-
+    
     # Vision (lidar mid-360) (not verified after env_cfg updated)
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_loadflat --resume --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2500 --save_interval 200 --headless
     ```
@@ -116,7 +122,7 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```shell
     # Blind (not verified after env_cfg updated)
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0 --history_len 5 --run_name blind --max_iterations 3000 --save_interval 200 --headless
-
+    
     # Vision (lidar mid-360) (not verified after env_cfg updated)
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar --max_iterations 3000 --save_interval 200 --headless
     ```
