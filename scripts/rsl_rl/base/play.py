@@ -78,8 +78,6 @@ from isaaclab_rl.rsl_rl import (
 from leggedloco_tasks.manager_based.locomotion.velocity.config import *
 from leggedloco_tasks.manager_based.locomotion.velocity.utils import RslRlVecEnvHistoryWrapper
 
-from utils import quat2eulers
-
 
 def main():
     """Play with RSL-RL agent."""
@@ -104,9 +102,10 @@ def main():
         env_cfg.observations.policy.velocity_commands = ObsTerm(
             func=lambda env: torch.tensor(controller.advance(), dtype=torch.float32).unsqueeze(0).to(env.device),
         )
-        env_cfg.observations.proprio.velocity_commands = ObsTerm(
-            func=lambda env: torch.tensor(controller.advance(), dtype=torch.float32).unsqueeze(0).to(env.device),
-        )
+        if env_cfg.observations.proprio is not None:
+            env_cfg.observations.proprio.velocity_commands = ObsTerm(
+                func=lambda env: torch.tensor(controller.advance(), dtype=torch.float32).unsqueeze(0).to(env.device),
+            )
 
     # specify directory for logging experiments
     log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
@@ -225,7 +224,7 @@ def main():
 
             robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
             robot_quat_w = env.unwrapped.scene["robot"].data.root_quat_w[0].detach().cpu().numpy()
-            roll, pitch, yaw = quat2eulers(robot_quat_w[0], robot_quat_w[1], robot_quat_w[2], robot_quat_w[3])
+            roll, pitch, yaw = rsl_rl_utils.quat2eulers(robot_quat_w[0], robot_quat_w[1], robot_quat_w[2], robot_quat_w[3])
             cam_eye = (robot_pos_w[0] - 15.0, robot_pos_w[1] + 36.0, robot_pos_w[2] + 7.0)
             cam_target = (robot_pos_w[0] + 3.0, robot_pos_w[1] + 18.0, robot_pos_w[2])
             # set the camera view
