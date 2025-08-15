@@ -307,7 +307,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/trunk.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/trunk.dae" scale="1 1 1"/>
       </geometry>
       <material name="silver"/>
     </visual>
@@ -320,7 +320,7 @@
     <!-- <collision>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="../meshes/trunk.dae" scale="1 1 1"/>
+                <mesh filename="package://../meshes/trunk.dae" scale="1 1 1"/>
             </geometry>
         </collision> -->
     <inertial>
@@ -371,7 +371,7 @@
     <visual>
       <origin rpy="3.141592653589793 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/hip.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/hip.dae" scale="1 1 1"/>
       </geometry>
       <material name="red"/>
     </visual>
@@ -407,13 +407,13 @@
       <inertia ixx="0.000138702" ixy="0.0" ixz="0.0" iyy="8.3352e-05" iyz="0.0" izz="8.3352e-05"/>
     </inertial>
   </link>
-  <joint name="FR_thigh_joint" type="revolute">
+  <joint name="FR_thigh_joint" type="continuous">
     <origin rpy="0 0 0" xyz="0 -0.0868 0"/>
     <parent link="FR_hip"/>
     <child link="FR_thigh"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0" friction="0"/>
-    <limit effort="35.278" lower="-3.141592654" upper="4.71238898" velocity="20"/>
+    <limit effort="35.278" velocity="20"/>
   </joint>
   <joint name="FR_thigh_rotor_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0.0 -0.0298 0"/>
@@ -424,7 +424,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/thigh_mirror.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/thigh_mirror.dae" scale="1 1 1"/>
       </geometry>
       <material name="blue"/>
     </visual>
@@ -477,7 +477,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/calf.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/calf.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -584,7 +584,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/hip.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/hip.dae" scale="1 1 1"/>
       </geometry>
       <material name="red"/>
     </visual>
@@ -620,13 +620,13 @@
       <inertia ixx="0.000138702" ixy="0.0" ixz="0.0" iyy="8.3352e-05" iyz="0.0" izz="8.3352e-05"/>
     </inertial>
   </link>
-  <joint name="FL_thigh_joint" type="revolute">
+  <joint name="FL_thigh_joint" type="continuous">
     <origin rpy="0 0 0" xyz="0 0.0868 0"/>
     <parent link="FL_hip"/>
     <child link="FL_thigh"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0" friction="0"/>
-    <limit effort="35.278" lower="-3.141592654" upper="4.71238898" velocity="20"/>
+    <limit effort="35.278" velocity="20"/>
   </joint>
   <joint name="FL_thigh_rotor_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0.0 0.0298 0"/>
@@ -637,7 +637,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/thigh.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/thigh.dae" scale="1 1 1"/>
       </geometry>
       <material name="blue"/>
     </visual>
@@ -690,7 +690,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/calf.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/calf.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -797,7 +797,7 @@
     <visual>
       <origin rpy="3.141592653589793 3.141592653589793 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/hip.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/hip.dae" scale="1 1 1"/>
       </geometry>
       <material name="red"/>
     </visual>
@@ -833,13 +833,13 @@
       <inertia ixx="0.000138702" ixy="0.0" ixz="0.0" iyy="8.3352e-05" iyz="0.0" izz="8.3352e-05"/>
     </inertial>
   </link>
-  <joint name="RR_thigh_joint" type="revolute">
+  <joint name="RR_thigh_joint" type="continuous">
     <origin rpy="0 0 0" xyz="0 -0.0868 0"/>
     <parent link="RR_hip"/>
     <child link="RR_thigh"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0" friction="0"/>
-    <limit effort="35.278" lower="-3.141592654" upper="4.71238898" velocity="20"/>
+    <limit effort="35.278" velocity="20"/>
   </joint>
   <joint name="RR_thigh_rotor_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0.0 -0.0298 0"/>
@@ -850,7 +850,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/thigh_mirror.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/thigh_mirror.dae" scale="1 1 1"/>
       </geometry>
       <material name="blue"/>
     </visual>
@@ -903,7 +903,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/calf.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/calf.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -1010,7 +1010,7 @@
     <visual>
       <origin rpy="0 3.141592653589793 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/hip.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/hip.dae" scale="1 1 1"/>
       </geometry>
       <material name="red"/>
     </visual>
@@ -1046,13 +1046,13 @@
       <inertia ixx="0.000138702" ixy="0.0" ixz="0.0" iyy="8.3352e-05" iyz="0.0" izz="8.3352e-05"/>
     </inertial>
   </link>
-  <joint name="RL_thigh_joint" type="revolute">
+  <joint name="RL_thigh_joint" type="continuous">
     <origin rpy="0 0 0" xyz="0 0.0868 0"/>
     <parent link="RL_hip"/>
     <child link="RL_thigh"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0" friction="0"/>
-    <limit effort="35.278" lower="-3.141592654" upper="4.71238898" velocity="20"/>
+    <limit effort="35.278" velocity="20"/>
   </joint>
   <joint name="RL_thigh_rotor_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0.0 0.0298 0"/>
@@ -1063,7 +1063,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/thigh.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/thigh.dae" scale="1 1 1"/>
       </geometry>
       <material name="blue"/>
     </visual>
@@ -1116,7 +1116,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../meshes/calf.dae" scale="1 1 1"/>
+        <mesh filename="package://../meshes/calf.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>

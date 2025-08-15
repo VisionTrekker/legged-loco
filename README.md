@@ -139,34 +139,70 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```
 
 ## Add New Environments
+ - add robot model in `source/leggedloco_tasks/data/Robots`
+ - add robot config in `source/leggedloco_tasks/leggedloco_tasks/assets/robots/xx.py`. It supports direct import of URDF, XACRO, and MJCF robot 
+  models without requiring pre-conversion to USD format. And it will generated the robot's USD file.
+  
+    or convert it manually: `python scripts/tools/convert_urdf.py source/leggedloco_tasks/data/Robots/Unitree/aliengo_description/urdf/aliengo.urdf source/leggedloco_tasks/data/Robots/Unitree/aliengo_description/usd/aliengo.usd --merge-joints`
 
-### convert urdf to usd
     ```shell
-    python scripts/tools/convert_urdf.py --input <INPUT_URDF> --output <OUTPUT_USD>
+    from robot_lab.assets.utils.usd_converter import (  # noqa: F401
+       mjcf_to_usd,
+       spawn_from_lazy_usd,
+       urdf_to_usd,
+       xacro_to_usd,
+    )
+    
+    YOUR_ROBOT_CFG = ArticulationCfg(
+        spawn=sim_utils.UsdFileCfg(
+            # for urdf
+            func=spawn_from_lazy_usd,
+            usd_path=urdf_to_usd(  # type: ignore
+                file_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/your_robot/your_robot.urdf",
+                merge_joints=True,
+                fix_base=False,
+            ),
+            # for xacro
+            func=spawn_from_lazy_usd,
+            usd_path=xacro_to_usd(  # type: ignore
+                file_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/your_robot/your_robot.xacro",
+                merge_joints=True,
+                fix_base=False,
+            ),
+            # for mjcf
+            func=spawn_from_lazy_usd,
+            usd_path=mjcf_to_usd(  # type: ignore
+                file_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/your_robot/your_robot.xml",
+                import_sites=True,
+                fix_base=False,
+            ),
+            # ... other configuration parameters ...
+        ),
+        # ... other configuration parameters ...
+    )
     ```
-> [!NOTE]
-> There is a problem with the urdf conversion of the current Isaacsim version. Please checkout your IsaacLab to **v1.4.1**.
+ - check your model import compatibility using: `python scripts/tools/check_robot.py {urdf,mjcf,xacro} <path_to_your_model_file>`
 
-
-### configure new env
-You can add additional environments by placing them under `/source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/velocity/config`.
-
-```tree
-source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/velocity
-├── __init__.py
-└── velocity
-    ├── config
-    │   ├── humanoid
-    │   └── quadruped
-    │       └── unitree_a1
-    │           ├── agent  # <- this is where we store the learning agent configurations
-    │           ├── __init__.py  # <- this is where we register the environment and configurations to gym registry
-    │           ├── flat_env_cfg.py
-    │           └── rough_env_cfg.py
+ - register new robot in `/source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/velocity/config/quadruped/aliengo/__init__.py`.
+    ```tree
+    source/leggedloco_tasks/leggedloco_tasks/manager_based/locomotion/velocity
     ├── __init__.py
-    ├── mdp
-    ├── utils
-    │   └── wrappers.py
-    ├── velocity_env_cfg.py  # <- this is the base task configuration
-    └── velocity_recover_env_cfg.py
-```
+    └── velocity
+        ├── config
+        │   ├── humanoid
+        │   └── quadruped
+        │       └── unitree_a1
+        │           ├── agent  # <- this is where we store the learning agent configurations
+        │           ├── __init__.py  # <- this is where we register the environment and configurations to gym registry
+        │           ├── flat_env_cfg.py
+        │           └── rough_env_cfg.py
+        ├── __init__.py
+        ├── mdp
+        ├── utils
+        │   └── wrappers.py
+        ├── velocity_env_cfg.py  # <- this is the base task configuration
+        └── velocity_recover_env_cfg.py
+    ```
+
+## Tensorboard
+To view tensorboard, run `tensorboard --logdir=logs`.
