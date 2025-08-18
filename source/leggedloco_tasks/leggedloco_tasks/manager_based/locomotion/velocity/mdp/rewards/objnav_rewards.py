@@ -312,6 +312,30 @@ def joint_vel_limits(
     return torch.sum(out_of_limits, dim=1)
 
 
+def wheel_vel_lowCmd(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    command_name: str,
+    velocity_threshold: float,
+    command_threshold: float,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    asset: Articulation = env.scene[asset_cfg.name]
+    cmd = torch.linalg.norm(env.command_manager.get_command(command_name), dim=1)
+    body_vel = torch.linalg.norm(asset.data.root_lin_vel_b[:, :2], dim=1)
+    joint_vel = torch.abs(asset.data.joint_vel[:, asset_cfg.joint_ids])  # 四轮的关节速度
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]  # 四轮的接触力
+    in_air = contact_sensor.compute_first_air(env.step_dt)[:, sensor_cfg.body_ids]  # 四轮是否在空中
+    running_reward = torch.sum(in_air * joint_vel, dim=1)
+    standing_reward = torch.sum(joint_vel, dim=1)
+    reward = torch.where(
+        torch.logical_or(cmd > command_threshold, body_vel > velocity_threshold),
+        running_reward,
+        standing_reward,
+    )
+    return reward
+
+
 def joint_power(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Penalize joint power consumption of the robot."""
     # extract the used quantities (to enable type-hinting)

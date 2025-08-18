@@ -503,6 +503,19 @@ class RewardsCfg:
         func=mdp.joint_vel_limits, weight=-0.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*"), "soft_ratio": 1.0},
     )
+    # 惩罚四轮在空中或者静立时的关节速度：
+    #   1. command > 0.1 && vel > 0.5时，惩罚空中轮子的关节速度；
+    #   2. command <= 0.1 || vel <= 0.5时，即静立时，惩罚四轮的关节速度
+    wheel_vel_lowCmd = RewTerm(
+        func=mdp.wheel_vel_lowCmd, weight=-0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=""),
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
+            "command_name": "base_velocity",
+            "velocity_threshold": 0.5,
+            "command_threshold": 0.1,
+        },
+    )
     joint_power = RewTerm(  # 关节实际扭矩 * 关节速度 之和
         func=mdp.joint_power, weight=-0.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
