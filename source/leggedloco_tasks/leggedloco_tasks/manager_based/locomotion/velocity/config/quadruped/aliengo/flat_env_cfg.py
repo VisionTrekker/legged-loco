@@ -51,7 +51,7 @@ class AlienGoFlatEnvCfg(AlienGoRoughEnvCfg):
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_hip_l1", -0.4, [".*_hip_joint"])
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_thigh_l1", -0.04, [".*_thigh_joint"])
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_calf_l1", -0.04, [".*_calf_joint"])
-        self.rewards.joint_deviation_lowCmd.weight = -0.1  # -1.0
+        self.rewards.joint_pos_deviation.weight = -0.1  # -1.0
         self.rewards.stand_still_without_cmd.weight = -2.0  # -2.0
         self.rewards.joint_pos_limits.weight = -5.0  # -5.0
         self.rewards.joint_vel_limits.weight = -0.0

@@ -28,8 +28,6 @@ class LocomotionVelocityRoughRecoverEnvCfg(LocomotionVelocityRoughEnvCfg):
         # we tick all the sensors based on the smallest update period (physics update period)
         if self.scene.height_scanner is not None:
             self.scene.height_scanner.update_period = self.sim.dt * self.decimation
-        if self.scene.height_scanner_base is not None:
-            self.scene.height_scanner_base.update_period = self.sim.dt * self.decimation
         if self.scene.lidar_scanner is not None:
             self.scene.lidar_scanner.update_period = self.sim.dt * self.decimation
         if self.scene.contact_forces is not None:
@@ -51,7 +49,7 @@ class LocomotionVelocityRoughRecoverEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.func = mdp.flat_orientation_l2_up
         self.rewards.base_height_l2.func = mdp.base_height_l2_up
         # Joint penalties
-        self.rewards.joint_deviation_lowCmd.func = mdp.joint_deviation_lowCmd_up
+        self.rewards.joint_pos_deviation.func = mdp.joint_pos_deviation_up
         self.rewards.stand_still_without_cmd.func = mdp.stand_still_without_cmd_up
         self.rewards.joint_mirror.func = mdp.joint_mirror_up
         # Action penalties

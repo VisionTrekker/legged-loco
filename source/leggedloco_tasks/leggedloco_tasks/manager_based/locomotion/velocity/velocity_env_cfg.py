@@ -33,6 +33,8 @@ from leggedloco_tasks.assets.terrains import ROUGH_BLIND_TERRAINS_CFG, ROUGH_TER
 ##
 # Scene definition
 ##
+
+
 @configclass
 class VelocitySceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a legged robot."""
@@ -42,7 +44,7 @@ class VelocitySceneCfg(InteractiveSceneCfg):
         prim_path="/World/ground",
         terrain_type="generator",
         terrain_generator=ROUGH_BLIND_TERRAINS_CFG,
-        max_init_terrain_level=2,
+        max_init_terrain_level=5,
         collision_group=-1,
         physics_material=sim_utils.RigidBodyMaterialCfg(
             friction_combine_mode="multiply",  # 发生碰撞时的 摩擦系数的结合方式，默认为average
@@ -257,7 +259,8 @@ class ObservationsCfg:
             self.concatenate_terms = True
 
     @configclass
-    class CriticObsCfg(ObsGroup):
+    class CriticCfg(ObsGroup):
+        """Observations for critic group."""
 
         # observation terms (order preserved)
         base_lin_vel = ObsTerm(
@@ -312,7 +315,7 @@ class ObservationsCfg:
     # observation groups
     policy: PolicyCfg = PolicyCfg()
     proprio: ProprioCfg = ProprioCfg()
-    critic: CriticObsCfg = CriticObsCfg()
+    critic: CriticCfg = CriticCfg()
 
 
 @configclass
@@ -337,7 +340,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
-            "mass_distribution_params": (0.0, 3.0),
+            "mass_distribution_params": (-1.0, 3.0),
             "operation": "add",
         },
     )
@@ -356,7 +359,7 @@ class EventCfg:
         func=mdp.randomize_rigid_body_com,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=""),
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
             "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
         },
     )
@@ -373,12 +376,14 @@ class EventCfg:
     )
 
     randomize_reset_joints = EventTerm(  # 随机更改env的 默认关节位置、速度
-        # func=mdp.reset_joints_by_scale,  # （ * ）
-        func=mdp.reset_joints_by_offset,  # （ ± ）
+        func=mdp.reset_joints_by_scale,  # （ * ）
+        # func=mdp.reset_joints_by_offset,  # （ ± ）
         mode="reset",
         params={
-            "position_range": (-0.2, 0.2),
-            "velocity_range": (-0.5, 0.5),
+            "position_range": (1.0, 1.0),  # by scale
+            "velocity_range": (0.0, 0.0),
+            # "position_range": (-0.2, 0.2),  # by offset
+            # "velocity_range": (-0.5, 0.5),
         },
     )
 
@@ -472,11 +477,11 @@ class RewardsCfg:
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=joint_names_pattern)},
         )
         setattr(self, attr_name, rew_term)
-
-    # commands > 0.1 或 base前进线速度 > 0.5的情况下，关节位置与默认位置的偏差 权重小
-    # commands <= 0.1 且 base前进线速度 <= 0.5的情况下，关节位置与默认位置的偏差 权重大
-    joint_deviation_lowCmd = RewTerm(
-        func=mdp.joint_deviation_lowCmd, weight=-0.0,
+    # 惩罚 关节位置 与 默认位置的 偏差（低cmd时权重大）
+    #   1. commands > 0.1 || base前进线速度 > 0.5的情况下，关节位置与默认位置的偏差 * 1.0
+    #   2. commands <= 0.1 && base前进线速度 <= 0.5的情况下，关节位置与默认位置的偏差 * 5.0
+    joint_pos_deviation = RewTerm(
+        func=mdp.joint_pos_deviation, weight=-0.0,
         params={
             "command_name": "base_velocity",
             "command_threshold": 0.1,
@@ -570,15 +575,12 @@ class RewardsCfg:
     )
 
     # Others
-    feet_air_time = RewTerm(  # commands > 0.1 或 base线速度 > 0.5情况下，接触时间和空中时间接近 0.3s
+    feet_air_time = RewTerm(  # commands_vel > 0.1情况下，接触时间和空中时间接近 0.5s
         func=mdp.feet_air_time, weight=0.0,
         params={
             "command_name": "base_velocity",
-            "command_threshold": 0.1,
-            "mode_time": 0.3,
-            "velocity_threshold": 0.5,
-            "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
+            "threshold": 0.5,
         }
     )
     feet_air_time_variance = RewTerm(
@@ -733,13 +735,10 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
         # we tick all the sensors based on the smallest update period (physics update period)
         if self.scene.height_scanner is not None:
             self.scene.height_scanner.update_period = self.sim.dt * self.decimation
-        if self.scene.height_scanner_base is not None:
-            self.scene.height_scanner_base.update_period = self.sim.dt * self.decimation
         if self.scene.lidar_scanner is not None:
             self.scene.lidar_scanner.update_period = self.sim.dt * self.decimation
         if self.scene.contact_forces is not None:
             self.scene.contact_forces.update_period = self.sim.dt
-
 
         # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
         # this generates terrains with increasing difficulty and is useful for training

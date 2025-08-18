@@ -210,7 +210,7 @@ def joint_deviation_l1(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = Scene
     return torch.sum(torch.abs(angle), dim=1)
 
 
-def joint_deviation_lowCmd(
+def joint_pos_deviation(
     env: ManagerBasedRLEnv,
     command_name: str,
     command_threshold: float,
@@ -232,7 +232,7 @@ def joint_deviation_lowCmd(
         stand_still_scale * running_reward,
     )
     return reward
-def joint_deviation_lowCmd_up(
+def joint_pos_deviation_up(
     env: ManagerBasedRLEnv,
     command_name: str,
     command_threshold: float,
@@ -535,47 +535,26 @@ Other penalties.
 """
 
 
-def feet_air_time(
-    env: ManagerBasedRLEnv,
-    command_name: str,
-    command_threshold: float,
-    mode_time: float,
-    velocity_threshold: float,
-    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
-    sensor_cfg: SceneEntityCfg | None = None,
-) -> torch.Tensor:
-    """Reward longer feet air and contact time."""
+def feet_air_time(env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float) -> torch.Tensor:
+    """Reward long steps taken by the feet using L2-kernel.
+
+    This function rewards the agent for taking steps that are longer than a threshold. This helps ensure
+    that the robot lifts its feet off the ground and takes steps. The reward is computed as the sum of
+    the time for which the feet are in the air.
+
+    If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
+    """
     # extract the used quantities (to enable type-hinting)
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
-    asset: Articulation = env.scene[asset_cfg.name]
-    if contact_sensor.cfg.track_air_time is False:
-        raise RuntimeError("Activate ContactSensor's track_air_time!")
     # compute the reward
-    current_air_time = contact_sensor.data.current_air_time[:, sensor_cfg.body_ids]
-    current_contact_time = contact_sensor.data.current_contact_time[:, sensor_cfg.body_ids]
-
-    t_max = torch.max(current_air_time, current_contact_time)
-    t_min = torch.clip(t_max, max=mode_time)
-    stance_cmd_reward = torch.clip(current_contact_time - current_air_time, -mode_time, mode_time)
-    command = torch.linalg.norm(env.command_manager.get_command(command_name), dim=1).unsqueeze(dim=1).expand(-1, 4)
-    body_vel = torch.linalg.norm(asset.data.root_com_lin_vel_b[:, :2], dim=1).unsqueeze(dim=1).expand(-1, 4)
-    reward = torch.where(
-        torch.logical_or(command > command_threshold, body_vel > velocity_threshold),
-        torch.where(t_max < mode_time, t_min, 0),
-        stance_cmd_reward,
-    )
-    reward = torch.sum(reward, dim=1)
+    first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
+    last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
+    reward = torch.sum((last_air_time - threshold) * first_contact, dim=1)
+    # no reward for zero command
+    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1
     return reward
-def feet_air_time_up(
-    env: ManagerBasedRLEnv,
-    command_name: str,
-    command_threshold: float,
-    mode_time: float,
-    velocity_threshold: float,
-    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
-    sensor_cfg: SceneEntityCfg | None = None,
-) -> torch.Tensor:
-    reward = feet_air_time(env, command_name, command_threshold, mode_time, velocity_threshold, asset_cfg, sensor_cfg)
+def feet_air_time_up(env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float) -> torch.Tensor:
+    reward = feet_air_time(env, command_name, sensor_cfg, threshold)
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
@@ -584,8 +563,6 @@ def feet_air_time_variance(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg = 
     """Penalize variance in the amount of time each foot spends in the air/on the ground relative to each other"""
     # extract the used quantities (to enable type-hinting)
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
-    if contact_sensor.cfg.track_air_time is False:
-        raise RuntimeError("Activate ContactSensor's track_air_time!")
     # compute the reward
     last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
     last_contact_time = contact_sensor.data.last_contact_time[:, sensor_cfg.body_ids]
