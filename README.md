@@ -18,7 +18,7 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 
 2. Install PyTorch with CUDA 128.
     ```shell
-    pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128
+    pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu128
     ```
 
 3. To update pip.
@@ -79,20 +79,24 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     python scripts/tools/list_envs.py
     ```
 
-    | **Environment ID**                                       | **Description**                                                                                                     |
-    |----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-    | LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0                | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking)                             |
-    | LeggedLoco-Isaac-Velocity-Flat-Play-AlienGo-v            |                                                                                                                     |
-    | LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0          | Track a velocity command on flat terrain with the Unitree AlienGo robot enhanced by Mid-360 LiDAR                   |
-    | LeggedLoco-Isaac-Velocity-Flat-Lidar-Play-AlienGo-v0     |                                                                                                                     |
-    | LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0               | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking)           |
-    | LeggedLoco-Isaac-Velocity-Rough-Play-AlienGo-v0          |                                                                                                                     |
-    | LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0         | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot enhanced by Mid-360 LiDAR |
-    | LeggedLoco-Isaac-Velocity-Rough-Lidar-Play-AlienGo-v0    |                                                                                                                     |
-    | LeggedLoco-Isaac-Velocity-Flat-Recover-AlienGo-v0        | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking + recover)                   |
-    | LeggedLoco-Isaac-Velocity-Flat-Recover-Play-AlienGo-v0   |                                                                                                                     |
-    | LeggedLoco-Isaac-Velocity-Rough-Recover-AlienGo-v0       | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking + recover) |
-    | LeggedLoco-Isaac-Velocity-Rough-Recover-Play-AlienGo-v0  |                                                                                                                     |
+    | **Environment ID**                                      | **Description**                                                                                                     |
+    |---------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+    | LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0               | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking)                             |
+    | LeggedLoco-Isaac-Velocity-Flat-Play-AlienGo-v           |                                                                                                                     |
+    | LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0         | Track a velocity command on flat terrain with the Unitree AlienGo robot enhanced by Mid-360 LiDAR                   |
+    | LeggedLoco-Isaac-Velocity-Flat-Lidar-Play-AlienGo-v0    |                                                                                                                     |
+    | LeggedLoco-Isaac-Velocity-Rough-AlienGo-v0              | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking)           |
+    | LeggedLoco-Isaac-Velocity-Rough-Play-AlienGo-v0         |                                                                                                                     |
+    | LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0        | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot enhanced by Mid-360 LiDAR |
+    | LeggedLoco-Isaac-Velocity-Rough-Lidar-Play-AlienGo-v0   |                                                                                                                     |
+    | LeggedLoco-Isaac-Velocity-Flat-Recover-AlienGo-v0       | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking + recover)                   |
+    | LeggedLoco-Isaac-Velocity-Flat-Recover-Play-AlienGo-v0  |                                                                                                                     |
+    | LeggedLoco-Isaac-Velocity-Rough-Recover-AlienGo-v0      | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking + recover) |
+    | LeggedLoco-Isaac-Velocity-Rough-Recover-Play-AlienGo-v0 |                                                                                                                     |
+    | LeggedLoco-Isaac-Velocity-Flat-Recover-Go2W-v0          | Track a velocity command on flat terrain with the Unitree Go2W robot (blind walking + recover)                      |
+    | LeggedLoco-Isaac-Velocity-Flat-Recover-Play-Go2W-v0     |     <br/>                                                                                                           |
+    | LeggedLoco-Isaac-Velocity-Rough-Recover-Go2W-v0         | Track a velocity command on rough terrain (slope + stairs) with the Unitree Go2W robot (blind walking + recover)    |
+    | LeggedLoco-Isaac-Velocity-Rough-Recover-Play-Go2W-v0    |                                                                                                                     |
 
 
 ### Train
@@ -103,7 +107,7 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0 --history_len 5 --run_name blind --max_iterations 2000 --save_interval 200 --headless
     # Blind + Recover
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Recover-AlienGo-v0 --history_len 5 --run_name blind_load --resume --load_experiment aliengo_flat --load_run "2025-06-27_16-17-06_blind_good" --max_iterations 2500 --save_interval 200 --headless
-    
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Recover-Go2W-v0 --history_len 5 --run_name blind --max_iterations 2000 --save_interval 200 --headless
     # Vision (lidar mid-360) (not verified after env_cfg updated)
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0  --history_len 5 --run_name lidar --max_iterations 2000 --save_interval 200 --headless
     ```
@@ -113,7 +117,8 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```shell
     # Blind + Recover
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Recover-AlienGo-v0 --history_len 5 --run_name blind_loadflat --resume --load_experiment aliengo_flatRecover --load_run "2025-07-01_15-36-26_blind_load" --max_iterations 2500 --save_interval 200 --headless
-    
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Recover-Go2W-v0 --history_len 5 --run_name blind_loadflat --resume 
+  --load_experiment go2w_flatRecover --load_run <> --max_iterations 2500 --save_interval 200 --headless
     # Vision (lidar mid-360) (not verified after env_cfg updated)
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Rough-Lidar-AlienGo-v0 --history_len 5 --run_name lidar_loadflat --resume --load_experiment aliengo_flat --load_run "2025-06-10_18-32-28_lidar" --max_iterations 2500 --save_interval 200 --headless
     ```
@@ -133,6 +138,9 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```shell
     python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 5 --load_run RUN_NAME
     ```
+  for using keyboard control robot when playing, add `--keyboard`, up, down, left, right arrows for translation, Z and C for rotate.
+
+
 *   For Saving video
     ```shell
     python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 5 --load_run RUN_NAME --headless --video
