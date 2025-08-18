@@ -17,8 +17,9 @@ from dataclasses import MISSING
 from isaaclab.managers import CommandTermCfg
 from isaaclab.utils.configclass import configclass
 from typing_extensions import Literal
+import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
 
-from .robot_vel_command_generator import RobotVelCommandGenerator
+from .robot_vel_command_generator import RobotVelCommandGenerator, UniformThresholdVelocityCommand
 
 
 @configclass
@@ -35,3 +36,9 @@ class RobotVelCommandGeneratorCfg(CommandTermCfg):
     - ``robot``: the path is defined in the robot frame. Also called ``base``.
     """
 
+
+@configclass
+class UniformThresholdVelocityCommandCfg(mdp.UniformVelocityCommandCfg):
+    """Configuration for the uniform threshold velocity command generator."""
+
+    class_type: type = UniformThresholdVelocityCommand

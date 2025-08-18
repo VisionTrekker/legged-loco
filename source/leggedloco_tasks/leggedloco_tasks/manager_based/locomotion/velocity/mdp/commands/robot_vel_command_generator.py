@@ -22,8 +22,10 @@ from isaaclab.envs import ManagerBasedRLEnv
 from isaaclab.managers import CommandTerm
 from isaaclab.sim import SimulationContext
 
+import leggedloco_tasks.manager_based.locomotion.velocity.mdp as mdp
+
 if TYPE_CHECKING:
-    from .robot_vel_command_generator_cfg import RobotVelCommandGeneratorCfg
+    from .robot_vel_command_generator_cfg import RobotVelCommandGeneratorCfg, UniformThresholdVelocityCommandCfg
 
 
 class RobotVelCommandGenerator(CommandTerm):
@@ -122,3 +124,15 @@ class RobotVelCommandGenerator(CommandTerm):
 
     def _resample_command(self, env_ids: Sequence[int]):
         pass
+
+
+class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
+    """Command generator that generates a velocity command in SE(2) from uniform distribution with threshold."""
+
+    cfg: mdp.UniformThresholdVelocityCommandCfg
+    """The configuration of the command generator."""
+
+    def _resample_command(self, env_ids: Sequence[int]):
+        super()._resample_command(env_ids)
+        # set small commands to zero
+        self.vel_command_b[env_ids, :2] *= (torch.norm(self.vel_command_b[env_ids, :2], dim=1) > 0.2).unsqueeze(1)

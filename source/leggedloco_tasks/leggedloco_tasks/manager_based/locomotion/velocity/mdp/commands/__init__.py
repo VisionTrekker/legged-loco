@@ -22,8 +22,8 @@ from .lowlevel_command_generator_cfg import LowLevelCommandGeneratorCfg
 from .goal_command_generator import GoalCommandGenerator
 from .goal_command_generator_cfg import GoalCommandGeneratorCfg
 
-from .robot_vel_command_generator import RobotVelCommandGenerator
-from .robot_vel_command_generator_cfg import RobotVelCommandGeneratorCfg
+from .robot_vel_command_generator import RobotVelCommandGenerator, UniformThresholdVelocityCommand
+from .robot_vel_command_generator_cfg import RobotVelCommandGeneratorCfg, UniformThresholdVelocityCommandCfg
 
 __all__ = ["PathFollowerCommandGeneratorCfg", "PathFollowerCommandGenerator", 
            "PathFollowerCommandGeneratorGPTCfg", "PathFollowerCommandGeneratorGPT",
@@ -32,4 +32,5 @@ __all__ = ["PathFollowerCommandGeneratorCfg", "PathFollowerCommandGenerator",
            "LowLevelCommandGeneratorCfg", "LowLevelCommandGenerator",
            "GoalCommandGenerator", "GoalCommandGeneratorCfg",
            "RobotVelCommandGenerator", "RobotVelCommandGeneratorCfg",
+           "UniformThresholdVelocityCommand", "UniformThresholdVelocityCommandCfg",
            ]
