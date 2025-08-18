@@ -186,12 +186,14 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
         # self.terminations.illegal_contact = None
 
         # ------------------------------Commands------------------------------
-        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
         self.commands.base_velocity.ranges.heading = (-math.pi, math.pi)
-        self.commands.base_velocity.ranges_limits.lin_vel_x = (-1.0, 1.5)
-        self.commands.base_velocity.ranges_limits.lin_vel_y = (-1.0, 1.0)
+
+        # ------------------------------Curriculums------------------------------
+        # self.curriculum.lin_vel_cmd_levels = None
+        self.curriculum.lin_vel_cmd_levels.params["vel_range_multiplier"] = (0.2, 1.5)
 
 
 @configclass
