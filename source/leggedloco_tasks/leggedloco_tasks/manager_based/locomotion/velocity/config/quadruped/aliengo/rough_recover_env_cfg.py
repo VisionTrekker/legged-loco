@@ -1,7 +1,7 @@
 import math
 from isaaclab.utils import configclass
 
-from leggedloco_tasks.manager_based.locomotion.velocity.velocity_recover_env_cfg import LocomotionVelocityRoughRecoverEnvCfg
+from leggedloco_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
 
 ##
 # Pre-defined configs
@@ -11,7 +11,7 @@ from leggedloco_tasks.assets.robots.unitree import UNITREE_ALIENGO_CFG
 
 
 @configclass
-class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
+class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
     base_link_name = "trunk"
     foot_link_name = ".*_foot"
@@ -182,6 +182,15 @@ class AlienGoRoughRecoverEnvCfg(LocomotionVelocityRoughRecoverEnvCfg):
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations------------------------------
+        # --- first 2.0s don't activate illegal_contact when recover-mode ---
+        # self.terminations.illegal_contact = DoneTerm(
+        #     func=mdp.illegal_contact_delay,
+        #     params={
+        #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
+        #         "contact_threshold": 1.0,
+        #         "episode_length_threshold": 100.0,  # 2.0s / 0.02
+        #     }
+        # )
         self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name, ".*_hip"]
         # self.terminations.illegal_contact = None
 

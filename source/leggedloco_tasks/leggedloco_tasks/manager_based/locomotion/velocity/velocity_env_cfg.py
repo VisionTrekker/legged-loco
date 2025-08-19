@@ -431,16 +431,16 @@ class RewardsCfg:
     )
 
     # Root penalties
-    lin_vel_z_l2 = RewTerm(
+    lin_vel_z_l2 = RewTerm(  # (upward)
         func=mdp.lin_vel_z_l2, weight=-0.0
     )
-    ang_vel_xy_l2 = RewTerm(
+    ang_vel_xy_l2 = RewTerm(  # (upward)
         func=mdp.ang_vel_xy_l2, weight=-0.0
     )
-    flat_orientation_l2 = RewTerm(
+    flat_orientation_l2 = RewTerm(  # (upward)
         func=mdp.flat_orientation_l2, weight=-0.0
     )
-    base_height_l2 = RewTerm(
+    base_height_l2 = RewTerm(  # (upward)
         func=mdp.base_height_l2, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
@@ -474,7 +474,7 @@ class RewardsCfg:
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=joint_names_pattern)},
         )
         setattr(self, attr_name, rew_term)
-    # 惩罚 关节位置 与 默认位置的 偏差（低cmd时权重大）
+    # 惩罚 关节位置 与 默认位置的 偏差（低cmd时权重大）(upward)
     #   1. commands > 0.1 || base前进线速度 > 0.5的情况下，关节位置与默认位置的偏差 * 1.0
     #   2. commands <= 0.1 && base前进线速度 <= 0.5的情况下，关节位置与默认位置的偏差 * 5.0
     joint_pos_deviation = RewTerm(
@@ -487,7 +487,7 @@ class RewardsCfg:
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
         },
     )
-    stand_still_without_cmd = RewTerm(  # commands < 0.1 的情况下，关节位置与默认位置的偏差
+    stand_still_without_cmd = RewTerm(  # commands < 0.1 的情况下，关节位置与默认位置的偏差 (upward)
         func=mdp.stand_still_without_cmd, weight=-0.0,
         params={
             "command_name": "base_velocity",
@@ -520,7 +520,7 @@ class RewardsCfg:
         func=mdp.joint_power, weight=-0.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
-    joint_mirror = RewTerm(  # 对称关节的位置偏差
+    joint_mirror = RewTerm(  # 对称关节的位置偏差 (upward)
         func=mdp.joint_mirror, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot"),
@@ -539,14 +539,14 @@ class RewardsCfg:
     action_smoothness = RewTerm(  # 惩罚 相邻 actions 的变化（差值的L2范数）
         func=mdp.action_smoothness, weight=-0.0,
     )
-    action_mirror = RewTerm(  # 对称关节的 actions 偏差
+    action_mirror = RewTerm(  # 对称关节的 actions 偏差 (upward)
         func=mdp.action_mirror, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot"),
             "mirror_joints": [["FR.*", "RL.*"], ["FL.*", "RR.*"]],
         },
     )
-    action_sync = RewTerm(  # 相同部位关节的 actions 方差之和，即让相同部位的关节同步
+    action_sync = RewTerm(  # 相同部位关节的 actions 方差之和，即让相同部位的关节同步 (upward)
         func=mdp.action_sync, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot"),
@@ -559,7 +559,7 @@ class RewardsCfg:
     )
 
     # Contact sensor
-    undesired_contacts = RewTerm(  # 部位接触力 > 1.0 的数量
+    undesired_contacts = RewTerm(  # 部位接触力 > 1.0 的数量 (upward)
         func=mdp.undesired_contacts, weight=-0.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
@@ -575,17 +575,17 @@ class RewardsCfg:
     )
 
     # Velocity-tracking rewards
-    track_lin_vel_xy_exp = RewTerm(  # commands >= 0.1 情况下，commands 与 base线速度 的偏差
+    track_lin_vel_xy_exp = RewTerm(  # commands >= 0.1 情况下，commands 与 base线速度 的偏差 (upward)
         func=mdp.track_lin_vel_xy_exp, weight=0.0,
         params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
     )
-    track_ang_vel_z_exp = RewTerm(  # commands 与 base角速度 的偏差
+    track_ang_vel_z_exp = RewTerm(  # commands 与 base角速度 的偏差 (upward)
         func=mdp.track_ang_vel_z_exp, weight=0.0,
         params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
     )
 
     # Others
-    feet_air_time = RewTerm(  # commands_vel > 0.1情况下，接触时间和空中时间接近 0.5s
+    feet_air_time = RewTerm(  # commands_vel > 0.1情况下，接触时间和空中时间接近 0.5s (upward)
         func=mdp.feet_air_time, weight=0.0,
         params={
             "command_name": "base_velocity",
@@ -593,7 +593,7 @@ class RewardsCfg:
             "threshold": 0.5,
         }
     )
-    feet_air_time_variance = RewTerm(
+    feet_air_time_variance = RewTerm(  # (upward)
         func=mdp.feet_air_time_variance, weight=-0.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
@@ -612,7 +612,7 @@ class RewardsCfg:
             "sensor_cfg": SceneEntityCfg("contact_forces"),
         },
     )
-    feet_contact = RewTerm(  # 有 commands 情况下，惩罚足部触地的个数 != 2
+    feet_contact = RewTerm(  # 有 commands 情况下，惩罚足部触地的个数 != 2 (upward)
         func=mdp.feet_contact, weight=-0.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
@@ -620,27 +620,27 @@ class RewardsCfg:
             "expect_contact_num": 2,
         },
     )
-    feet_contact_without_cmd = RewTerm(  # commands < 0.1 情况下，奖励足部触地的个数
+    feet_contact_without_cmd = RewTerm(  # commands < 0.1 情况下，奖励足部触地的个数 (upward)
         func=mdp.feet_contact_without_cmd, weight=0.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
             "command_name": "base_velocity",
         },
     )
-    feet_stumble = RewTerm(  # xy方向接触力 > 4 * z方向接触力，惩罚接触到竖直面
+    feet_stumble = RewTerm(  # xy方向接触力 > 4 * z方向接触力，惩罚接触到竖直面 (upward)
         func=mdp.feet_stumble, weight=-0.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
         },
     )
-    feet_slide = RewTerm(  # 足部触地时，足部相对base的xy方向线速度 的范数
+    feet_slide = RewTerm(  # 足部触地时，足部相对base的xy方向线速度 的范数 (upward)
         func=mdp.feet_slide, weight=-0.0,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
         },
     )
-    feet_height = RewTerm(  # commands > 0.1 情况下，足部xy线速度 * (足部高度 - 目标高度)
+    feet_height = RewTerm(  # commands > 0.1 情况下，足部xy线速度 * (足部高度 - 目标高度) (upward)
         func=mdp.feet_height, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
@@ -649,7 +649,7 @@ class RewardsCfg:
             "command_name": "base_velocity",
         },
     )
-    feet_height_body = RewTerm(  # commands > 0.1 情况下，足部xy线速度 * (足部相对base高度 - 目标高度)
+    feet_height_body = RewTerm(  # commands > 0.1 情况下，足部xy线速度 * (足部相对base高度 - 目标高度) (upward)
         func=mdp.feet_height_body, weight=-0.0,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
@@ -658,7 +658,7 @@ class RewardsCfg:
             "command_name": "base_velocity",
         },
     )
-    feet_distance_y_exp = RewTerm(  # 足部相对base的y方向位置 与 期望位置 的误差的exp
+    feet_distance_y_exp = RewTerm(  # 足部相对base的y方向位置 与 期望位置 的误差的exp (upward)
         func=mdp.feet_distance_y_exp, weight=0.0,
         params={
             "std": math.sqrt(0.25),
