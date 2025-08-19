@@ -105,14 +105,14 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```shell
     # Blind
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-AlienGo-v0 --history_len 5 --run_name blind --max_iterations 2000 --save_interval 200 --headless
-    # Blind + Recover
-    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Recover-AlienGo-v0 --history_len 5 --run_name blind_load --resume --load_experiment aliengo_flat --load_run "2025-06-27_16-17-06_blind_good" --max_iterations 2500 --save_interval 200 --headless
+    # Blind + Recover (scratch, still finetuning)
+    python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Recover-AlienGo-v0 --history_len 5 --run_name blind_scratch --max_iterations 2000 --save_interval 200 --headless
     # Vision (lidar mid-360) (not verified after env_cfg updated)
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Lidar-AlienGo-v0  --history_len 5 --run_name lidar --max_iterations 2000 --save_interval 200 --headless
     ```
 * Go2W
     ```shell
-    # Blind + Recover
+    # Blind + Recover (still finetuning)
     python scripts/rsl_rl/base/train.py --task LeggedLoco-Isaac-Velocity-Flat-Recover-Go2W-v0 --history_len 5 --run_name blind --max_iterations 2000 --save_interval 200 --headless
     ```
 
