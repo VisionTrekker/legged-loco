@@ -111,14 +111,14 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.ang_vel_xy_l2.weight = -0.05
         self.rewards.flat_orientation_l2.weight = -0.0
         self.rewards.base_height_l2.weight = -0.0
-        self.rewards.base_height_l2.params["target_height"] = 0.43
+        self.rewards.base_height_l2.params["target_height"] = 0.47
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         self.rewards.body_lin_acc_l2.weight = -0.0
         self.rewards.body_lin_acc_l2.params["asset_cfg"].body_names = [self.base_link_name]
 
         # Joint penalties
         self.rewards.joint_torques_l2.weight = -2.5e-5
-        self.rewards.joint_vel_l2.weight = 0.0
+        self.rewards.joint_vel_l2.weight = -0.0
         self.rewards.joint_acc_l2.weight = -1e-7
 
         # self.rewards.create_joint_deviation_l1_rewTerm("joint_deviation_hip_l1", -0.1, [".*_hip_joint"])
@@ -155,12 +155,12 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.track_ang_vel_z_exp.weight = 1.5
 
         # Others
-        self.rewards.feet_air_time.weight = 0.0
+        self.rewards.feet_air_time.weight = 0.1
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_air_time_variance.weight= -0.0
         self.rewards.feet_air_time.params["threshold"] = 0.5
+        self.rewards.feet_air_time_variance.weight = -1.0
         self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_gait.weight = 0.0
+        self.rewards.feet_gait.weight = 0.5
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
         self.rewards.feet_contact.weight = -0.0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
@@ -168,14 +168,14 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_stumble.weight = -1.0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_slide.weight = -0.0
+        self.rewards.feet_slide.weight = -0.1
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_height.weight = -0.0
-        self.rewards.feet_height.params["target_height"] = 0.15
+        self.rewards.feet_height.params["target_height"] = 0.05
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_height_body.weight = -1.0  # -5.0
-        self.rewards.feet_height_body.params["target_height"] = -0.30
+        self.rewards.feet_height_body.params["target_height"] = -0.32
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_distance_y_exp.weight = 0.0
         self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = [self.foot_link_name]
@@ -189,7 +189,6 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # ------------------------------Terminations------------------------------
         self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name, ".*_hip"]
-        # self.terminations.illegal_contact = None
 
         # ------------------------------Commands------------------------------
         self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
@@ -199,7 +198,7 @@ class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # ------------------------------Curriculums------------------------------
         # self.curriculum.lin_vel_cmd_levels = None
-        self.curriculum.lin_vel_cmd_levels.params["vel_range_multiplier"] = (0.2, 1.5)
+        self.curriculum.lin_vel_cmd_levels.params["vel_range_multiplier"] = (1.0, 1.5)
 
 
 @configclass
@@ -207,6 +206,8 @@ class AlienGoRoughPlayEnvCfg(AlienGoRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
+
+        self.episode_length_s = 10.0
 
         # ------------------------------Sence------------------------------
         # make a smaller scene for play
@@ -237,6 +238,7 @@ class AlienGoRoughPlayEnvCfg(AlienGoRoughEnvCfg):
         # ------------------------------Events------------------------------
         # remove random pushing event
         self.events.randomize_apply_external_force_torque = None
+        self.events.randomize_actuator_gains = None
         self.events.randomize_reset_base.params = {
             "pose_range": {
                 "x": (-0.5, 0.5),
@@ -258,6 +260,6 @@ class AlienGoRoughPlayEnvCfg(AlienGoRoughEnvCfg):
         self.events.randomize_push_robot = None
 
         # ------------------------------Commands------------------------------
-        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.5)
+        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
