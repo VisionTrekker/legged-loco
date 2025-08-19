@@ -13,7 +13,7 @@ from leggedloco_tasks.assets.robots.unitree import UNITREE_ALIENGO_CFG
 @configclass
 class AlienGoRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
     """Configuration for the AlienGo locomotion velocity-tracking environment."""
-    base_link_name = "trunk"
+    base_link_name = "base"
     foot_link_name = ".*_foot"
     # fmt: off
     joint_names = [

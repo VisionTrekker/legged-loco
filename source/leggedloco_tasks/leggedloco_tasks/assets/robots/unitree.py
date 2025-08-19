@@ -29,9 +29,9 @@ UNITREE_ALIENGO_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         func=spawn_from_lazy_usd,
         usd_path=urdf_to_usd(  # type: ignore
-            file_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/Unitree/aliengo_description/urdf/aliengo.urdf",
-            output_usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/Unitree/aliengo_description/usd/aliengo.usd",
-            merge_joints=False,
+            file_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/Unitree/aliengo_description/urdf/aliengo_bigAng.urdf",  # aliengo / aliengo_bigAng
+            output_usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/Unitree/aliengo_description/usd/aliengo_bigAng.usd",  # aliengo / aliengo_bigAng
+            merge_joints=True,
             fix_base=False,
         ),
         activate_contact_sensors=True,
@@ -63,8 +63,8 @@ UNITREE_ALIENGO_CFG = ArticulationCfg(
     actuators={
         "hip": DCMotorCfg(
             joint_names_expr=[".*_hip_joint"],
-            effort_limit=44.0,  # 35.2
-            saturation_effort=44.0,
+            effort_limit=35.2,  # 44.0 / 35.2
+            saturation_effort=35.2,
             velocity_limit=20.0,
             stiffness=40.0,
             damping=2.0,
@@ -72,8 +72,8 @@ UNITREE_ALIENGO_CFG = ArticulationCfg(
         ),
         "thigh": DCMotorCfg(
             joint_names_expr=[".*_thigh_joint"],
-            effort_limit=44.0,  # 35.2
-            saturation_effort=44.0,
+            effort_limit=35.2,  # 44.0 / 35.2
+            saturation_effort=35.2,
             velocity_limit=20.0,
             stiffness=40.0,
             damping=2.0,
@@ -81,8 +81,8 @@ UNITREE_ALIENGO_CFG = ArticulationCfg(
         ),
         "calf": DCMotorCfg(
             joint_names_expr=[".*_calf_joint"],
-            effort_limit=55.0,  # 44.4
-            saturation_effort=55.0,
+            effort_limit=44.4,  # 55.0 / 44.4
+            saturation_effort=44.4,
             velocity_limit=15.0,
             stiffness=40.0,
             damping=2.0,
