@@ -138,7 +138,7 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```shell
     python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 5 --load_run RUN_NAME
     ```
-  for using keyboard control robot when playing, add `--keyboard`, up, down, left, right arrows for translation, Z and C for rotate.
+  for using keyboard control robot when playing, add `--keyboard`, up, down, left, right arrows for translation, Z and X for rotation.
 
 
 *   For Saving video
@@ -213,4 +213,4 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```
 
 ## Tensorboard
-To view tensorboard, run `tensorboard --logdir=logs`.
+To view tensorboard, run `tensorboard --logdir=logs/rsl_rl`.
