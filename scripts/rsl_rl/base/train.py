@@ -140,7 +140,7 @@ def main():
     runner.add_git_repo_to_log(__file__)
     # save resume path before creating a new log_dir
     if agent_cfg.resume:
-        # get path to previous checkpoint
+        # get path to previous checkpoint (model_*.pt)
         resume_path = get_checkpoint_path(osp.join(osp.dirname(log_root_path), args_cli.load_experiment), agent_cfg.load_run, agent_cfg.load_checkpoint)
         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
         # load previously trained model

@@ -282,7 +282,7 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
 
 @configclass
-class Go2RoughPlayEnvCfg(Go2WRoughEnvCfg):
+class Go2WRoughPlayEnvCfg(Go2WRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

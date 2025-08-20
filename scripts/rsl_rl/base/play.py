@@ -147,6 +147,8 @@ def main():
         env = RslRlVecEnvWrapper(env)
 
     # specify directory for logging experiments
+    if args_cli.checkpoint:  # agent.yaml 内的 load_checkpoint 是默认的 model_*.pt，因此需要再次指定
+        agent_cfg.load_checkpoint = args_cli.checkpoint
     resume_path = get_checkpoint_path(log_root_path, args_cli.load_run, agent_cfg.load_checkpoint)
     print(f"[INFO]: Loading model checkpoint from: {resume_path}")
 
