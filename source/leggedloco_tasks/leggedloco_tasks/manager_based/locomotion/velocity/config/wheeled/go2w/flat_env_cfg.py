@@ -16,14 +16,19 @@ class Go2WFlatEnvCfg(Go2WRoughEnvCfg):
 
         # ------------------------------Events------------------------------
         # startup
-        self.events.randomize_rigid_body_material.params["static_friction_range"] = (0.1, 1.0)
-        self.events.randomize_rigid_body_material.params["dynamic_friction_range"] = (0.1, 0.8)
+        self.events.randomize_rigid_body_material.params["static_friction_range"] = (0.2, 1.2)
+        self.events.randomize_rigid_body_material.params["dynamic_friction_range"] = (0.2, 1.0)
+        self.events.randomize_rigid_body_material.params["restitution_range"] = (0.0, 1.0)
+        self.events.randomize_rigid_body_mass.params["mass_distribution_params"] = (0.0, 3.0)
+        self.events.randomize_rigid_body_inertia.params["inertia_distribution_params"] = (0.8, 1.2)
 
         # reset
         self.events.randomize_apply_external_force_torque.params["force_range"] = (-10.0, 10.0)
         self.events.randomize_apply_external_force_torque.params["torque_range"] = (-10.0, 10.0)
-        self.events.randomize_reset_joints.params["position_range"] = (1.0, 1.0)
+        self.events.randomize_reset_joints.params["position_range"] = (0.5, 1.5)
         self.events.randomize_reset_joints.params["velocity_range"] = (0.0, 0.0)
+        self.events.randomize_actuator_gains.params["stiffness_distribution_params"] = (0.8, 1.2)
+        self.events.randomize_actuator_gains.params["damping_distribution_params"] = (0.8, 1.2)
 
         # ------------------------------Rewards------------------------------
         # General
@@ -40,18 +45,18 @@ class Go2WFlatEnvCfg(Go2WRoughEnvCfg):
         self.rewards.joint_torques_l2.weight = -2.5e-5
         self.rewards.joint_torques_wheel_l2.weight = -0.0
 
-        self.rewards.joint_vel_l2.weight = 0.0
+        self.rewards.joint_vel_l2.weight = -0.0
         self.rewards.joint_vel_wheel_l2.weight = -0.0
 
         self.rewards.joint_acc_l2.weight = -2.5e-7
         self.rewards.joint_acc_wheel_l2.weight = -2.5e-9
 
-        self.rewards.joint_pos_deviation.weight = -1.0
+        self.rewards.joint_pos_deviation.weight = -0.3
         self.rewards.stand_still_without_cmd.weight = -2.0
         self.rewards.joint_pos_limits.weight = -5.0
 
         self.rewards.joint_vel_limits.weight = -0.0
-        self.rewards.wheel_vel_lowCmd.weight = -0.0
+        self.rewards.wheel_vel_lowCmd.weight = -0.01
 
         self.rewards.joint_power.weight = -2e-5
         self.rewards.joint_mirror.weight = -0.05
@@ -73,16 +78,18 @@ class Go2WFlatEnvCfg(Go2WRoughEnvCfg):
         self.rewards.track_ang_vel_z_exp.weight = 1.5
 
         # Others
-        self.rewards.feet_air_time.weight = 0.0
-        self.rewards.feet_air_time_variance.weight = -0.0
-        self.rewards.feet_gait.weight = 0.0
+        self.rewards.feet_air_time.weight = 0.1
+        self.rewards.feet_air_time_variance.weight = -1.0
+        self.rewards.feet_gait.weight = 0.2
         self.rewards.feet_contact.weight = -0.0
         self.rewards.feet_contact_without_cmd.weight = 0.1
-        self.rewards.feet_stumble.weight = -0.0
-        self.rewards.feet_slide.weight = -0.0
+        self.rewards.feet_stumble.weight = -1.0
+        self.rewards.feet_slide.weight = -0.02
         self.rewards.feet_height.weight = -0.0
+        self.rewards.feet_height.params["target_height"] = 0.10
         self.rewards.feet_height_body.weight = -0.0
         self.rewards.feet_height_body.params["target_height"] = -0.20
+        self.rewards.feet_distance_y_exp.weight = 0.0
 
         # Upward
         self.rewards.upward.weight = 1.0
@@ -93,13 +100,13 @@ class Go2WFlatEnvCfg(Go2WRoughEnvCfg):
 
         # ------------------------------Commands------------------------------
         self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
         self.commands.base_velocity.ranges.heading = (-math.pi, math.pi)
 
         # ------------------------------Curriculums------------------------------
-        self.curriculum.lin_vel_cmd_levels = None
-        # self.curriculum.lin_vel_cmd_levels.params["vel_range_multiplier"] = (0.5, 1.5)
+        # self.curriculum.lin_vel_cmd_levels = None
+        self.curriculum.lin_vel_cmd_levels.params["vel_range_multiplier"] = (1.0, 1.5)
 
 
 @configclass
@@ -107,6 +114,8 @@ class Go2WFlatPlayEnvCfg(Go2WFlatEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
+
+        self.episode_length_s = 10.0
 
         # ------------------------------Sence------------------------------
         # make a smaller scene for play
@@ -133,9 +142,9 @@ class Go2WFlatPlayEnvCfg(Go2WFlatEnvCfg):
             "pose_range": {
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
-                "z": (0.0, 0.1),
-                "roll": (-3.14, 3.14),
-                "pitch": (-3.14, 3.14),
+                "z": (0.0, 0.0),
+                "roll": (-1.57, 3.14),
+                "pitch": (-1.57, 1.57),
                 "yaw": (-3.14, 3.14),
             },
             "velocity_range": {
@@ -150,8 +159,8 @@ class Go2WFlatPlayEnvCfg(Go2WFlatEnvCfg):
         self.events.randomize_push_robot = None
 
         # ------------------------------Commands------------------------------
-        self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
 
         # ------------------------------Curriculums------------------------------
