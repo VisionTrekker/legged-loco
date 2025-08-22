@@ -83,7 +83,14 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         super().__post_init__()
 
         # ------------------------------Sence------------------------------
-        self.scene.robot = UNITREE_GO2W_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.robot = UNITREE_GO2W_CFG.replace(
+            prim_path="{ENV_REGEX_NS}/Robot",
+            spawn=UNITREE_GO2W_CFG.spawn.replace(
+                articulation_props=UNITREE_GO2W_CFG.spawn.articulation_props.replace(
+                    enabled_self_collisions=True,  # 默认为False，不开自碰撞检测。因目前在recover-mode下，原地转向时两后轮会碰撞
+                )
+            )
+        )
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
         self.scene.height_scanner_base.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
         # no lidar sensor
