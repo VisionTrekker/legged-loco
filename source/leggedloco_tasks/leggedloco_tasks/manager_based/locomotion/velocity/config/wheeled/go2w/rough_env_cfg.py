@@ -137,9 +137,9 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # ------------------------------Events------------------------------
         # startup
-        self.events.randomize_rigid_body_material.params["static_friction_range"] = (0.1, 1.0)
-        self.events.randomize_rigid_body_material.params["dynamic_friction_range"] = (0.1, 0.8)
-        self.events.randomize_rigid_body_material.params["restitution_range"] = (0.0, 0.5)
+        self.events.randomize_rigid_body_material.params["static_friction_range"] = (0.2, 1.2)
+        self.events.randomize_rigid_body_material.params["dynamic_friction_range"] = (0.2, 1.0)
+        self.events.randomize_rigid_body_material.params["restitution_range"] = (0.0, 1.0)
         self.events.randomize_rigid_body_mass.params["asset_cfg"].body_names = [self.base_link_name]
         self.events.randomize_rigid_body_mass.params["mass_distribution_params"] = (0.0, 3.0)
         self.events.randomize_rigid_body_inertia.params["inertia_distribution_params"] = (0.8, 1.2)
@@ -149,10 +149,10 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.events.randomize_apply_external_force_torque.params["asset_cfg"].body_names = [self.base_link_name]
         self.events.randomize_apply_external_force_torque.params["force_range"] = (-10.0, 10.0)
         self.events.randomize_apply_external_force_torque.params["torque_range"] = (-10.0, 10.0)
-        self.events.randomize_reset_joints.params["position_range"] = (1.0, 1.0)
+        self.events.randomize_reset_joints.params["position_range"] = (0.5, 1.5)
         self.events.randomize_reset_joints.params["velocity_range"] = (0.0, 0.0)
-        self.events.randomize_actuator_gains.params["stiffness_distribution_params"] = (0.5, 2.0)
-        self.events.randomize_actuator_gains.params["damping_distribution_params"] = (0.5, 2.0)
+        self.events.randomize_actuator_gains.params["stiffness_distribution_params"] = (0.8, 1.2)
+        self.events.randomize_actuator_gains.params["damping_distribution_params"] = (0.8, 1.2)
         self.events.randomize_reset_base.params = {
             "pose_range": {
                 "x": (-0.5, 0.5),
@@ -203,8 +203,9 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_acc_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         self.rewards.joint_acc_wheel_l2.weight = -2.5e-9  # 增加 轮足加速度
         self.rewards.joint_acc_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+
         # 位置偏差 仅应用到 腿部关节
-        self.rewards.joint_pos_deviation.weight = -1.0
+        self.rewards.joint_pos_deviation.weight = -0.3
         self.rewards.joint_pos_deviation.params["asset_cfg"].joint_names = self.leg_joint_names
         self.rewards.stand_still_without_cmd.weight = -2.0
         self.rewards.stand_still_without_cmd.params["asset_cfg"].joint_names = self.leg_joint_names
@@ -213,7 +214,7 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         self.rewards.joint_vel_limits.weight = -0.0  # 关节速度限制 应用到 轮足
         self.rewards.joint_vel_limits.params["asset_cfg"].joint_names = self.wheel_joint_names
-        self.rewards.wheel_vel_lowCmd.weight = -0.0  # 增加 轮足 在空中或者静立时的关节速度
+        self.rewards.wheel_vel_lowCmd.weight = -0.01  # 增加 轮足 在空中或者静立时的关节速度
         self.rewards.wheel_vel_lowCmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.wheel_vel_lowCmd.params["asset_cfg"].joint_names = self.wheel_joint_names
 
@@ -240,20 +241,20 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.track_ang_vel_z_exp.weight = 1.5
 
         # Others
-        self.rewards.feet_air_time.weight = 0.0
+        self.rewards.feet_air_time.weight = 0.1
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_air_time.params["threshold"] = 0.5
-        self.rewards.feet_air_time_variance.weight = -0.0
+        self.rewards.feet_air_time_variance.weight = -1.0
         self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_gait.weight = 0.0
+        self.rewards.feet_gait.weight = 0.2
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
         self.rewards.feet_contact.weight = -0.0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_contact_without_cmd.weight = 0.1
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_stumble.weight = -0.0
+        self.rewards.feet_stumble.weight = -1.0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_slide.weight = -0.0
+        self.rewards.feet_slide.weight = -0.02
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_height.weight = -0.0
@@ -265,9 +266,8 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_distance_y_exp.weight = 0.0
         self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = [self.foot_link_name]
 
-
         # Upward
-        self.rewards.upward.weight = 1.0
+        self.rewards.upward.weight = 0.5
 
         # If the weight of rewards is 0, set rewards to None
         if self.__class__.__name__ == "Go2WRoughEnvCfg":
@@ -278,14 +278,14 @@ class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.terminations.illegal_contact = None
 
         # ------------------------------Commands------------------------------
-        self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
         self.commands.base_velocity.ranges.heading = (-math.pi, math.pi)
 
         # ------------------------------Curriculums------------------------------
-        self.curriculum.command_levels = None
-        # self.curriculum.command_levels.params["range_multiplier"] = (0.2, 1.0)
+        # self.curriculum.lin_vel_cmd_levels = None
+        self.curriculum.lin_vel_cmd_levels.params["vel_range_multiplier"] = (1.0, 1.5)
 
 
 @configclass
@@ -293,6 +293,8 @@ class Go2WRoughPlayEnvCfg(Go2WRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
+
+        self.episode_length_s = 10.0
 
         # ------------------------------Sence------------------------------
         # make a smaller scene for play
@@ -304,12 +306,13 @@ class Go2WRoughPlayEnvCfg(Go2WRoughEnvCfg):
             self.scene.terrain.terrain_generator.num_rows = 5
             self.scene.terrain.terrain_generator.num_cols = 5
             self.scene.terrain.terrain_generator.curriculum = False
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].proportion = 0.3
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.20)
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].proportion = 0.3
-            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.20)
-            self.scene.terrain.terrain_generator.sub_terrains["boxes"].proportion = 0.1
-            self.scene.terrain.terrain_generator.sub_terrains["random_rough"].proportion = 0.1
+            self.scene.terrain.terrain_generator.difficulty_range = (0.6, 1.0)
+            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].proportion = 0.2
+            # self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.20)
+            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].proportion = 0.2
+            # self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.20)
+            self.scene.terrain.terrain_generator.sub_terrains["boxes"].proportion = 0.2
+            self.scene.terrain.terrain_generator.sub_terrains["random_rough"].proportion = 0.2
             self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope"].proportion = 0.1
             self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope_inv"].proportion = 0.1
 
@@ -328,9 +331,9 @@ class Go2WRoughPlayEnvCfg(Go2WRoughEnvCfg):
             "pose_range": {
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
-                "z": (0.0, 0.1),
-                "roll": (-3.14, 3.14),
-                "pitch": (-3.14, 3.14),
+                "z": (0.0, 0.0),
+                "roll": (-1.57, 3.14),
+                "pitch": (-1.57, 1.57),
                 "yaw": (-3.14, 3.14),
             },
             "velocity_range": {
