@@ -65,7 +65,7 @@ class VelocitySceneCfg(InteractiveSceneCfg):
     height_scanner = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
-        ray_alignment='yaw',  #  isaacsim 4.5: attach_yaw_only=True ==> isaacsim 5.0: ray_alignment='yaw'
+        ray_alignment='yaw',  #  isaacsim 4.5: attach_yaw_only=True/False ==> isaacsim 5.0: ray_alignment='yaw'/'base'
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
@@ -81,7 +81,7 @@ class VelocitySceneCfg(InteractiveSceneCfg):
     lidar_scanner = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
         offset=RayCasterCfg.OffsetCfg(pos=(0.10, 0.0, 0.082), rot=(1.0, 0.0, 0.0, 0.0)),
-        ray_alignment=None,
+        ray_alignment='base',
         pattern_cfg=patterns.LidarPatternCfg(
             channels=32, vertical_fov_range=(-7.0, 52.0), horizontal_fov_range=(-180, 180.0), horizontal_res=1.3
         ),
