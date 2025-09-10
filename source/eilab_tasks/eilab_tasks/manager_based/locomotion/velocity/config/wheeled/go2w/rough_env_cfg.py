@@ -1,0 +1,356 @@
+import math
+from isaaclab.managers import RewardTermCfg as RewTerm
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.utils import configclass
+
+import eilab_tasks.manager_based.locomotion.velocity.mdp as mdp
+from eilab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import (
+    LocomotionVelocityRoughEnvCfg,
+    ActionsCfg,
+    RewardsCfg,
+)
+
+##
+# Pre-defined configs
+##
+from eilab_tasks.assets.robots.unitree import UNITREE_GO2W_CFG  # isort: skip
+
+
+@configclass
+class Go2WActionsCfg(ActionsCfg):
+    """Action specifications for the MDP."""
+
+    joint_pos = mdp.JointPositionActionCfg(
+        asset_name="robot", joint_names=[""], scale=0.25, use_default_offset=True, clip=None, preserve_order=True
+    )
+    # 增加 轮足 的 actions
+    joint_vel = mdp.JointVelocityActionCfg(
+        asset_name="robot", joint_names=[""], scale=5.0, use_default_offset=True, clip=None, preserve_order=True
+    )
+
+
+@configclass
+class Go2WRewardsCfg(RewardsCfg):
+    """Reward terms for the MDP."""
+    # 增加 轮足关节的速度
+    joint_vel_wheel_l2 = RewTerm(
+        func=mdp.joint_vel_l2, weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names="")
+        }
+    )
+    # 增加 轮足关节的加速度
+    joint_acc_wheel_l2 = RewTerm(
+        func=mdp.joint_acc_l2, weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names="")
+        }
+    )
+    # 增加 轮足关节的扭矩
+    joint_torques_wheel_l2 = RewTerm(
+        func=mdp.joint_torques_l2, weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names="")
+        }
+    )
+
+
+@configclass
+class Go2WRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+    """Configuration for the Go2W locomotion velocity-tracking environment."""
+    # 因增加 轮足 关节，所以需更新新的 actions 和 奖励函数 配置
+    actions: Go2WActionsCfg = Go2WActionsCfg()
+    rewards: Go2WRewardsCfg = Go2WRewardsCfg()
+
+    base_link_name = "base"
+    foot_link_name = ".*_foot"
+
+    # fmt: off
+    leg_joint_names = [
+        "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
+        "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint",
+        "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint",
+        "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint",
+    ]
+    wheel_joint_names = [
+        "FR_foot_joint", "FL_foot_joint", "RR_foot_joint", "RL_foot_joint",
+    ]
+    joint_names = leg_joint_names + wheel_joint_names
+    # fmt: on
+
+    def __post_init__(self):
+        # post init of parent
+        super().__post_init__()
+
+        # ------------------------------Sence------------------------------
+        self.scene.robot = UNITREE_GO2W_CFG.replace(
+            prim_path="{ENV_REGEX_NS}/Robot",
+            spawn=UNITREE_GO2W_CFG.spawn.replace(
+                articulation_props=UNITREE_GO2W_CFG.spawn.articulation_props.replace(
+                    enabled_self_collisions=True,  # 默认为False，不开自碰撞检测。因目前在recover-mode下，原地转向时两后轮会碰撞
+                )
+            )
+        )
+        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
+        self.scene.height_scanner_base.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
+        # no lidar sensor
+        self.scene.lidar_scanner = None
+
+        # ------------------------------Observations------------------------------
+        self.observations.policy.base_lin_vel.scale = 2.0
+        self.observations.policy.base_lin_vel = None
+        self.observations.policy.base_ang_vel.scale = 0.25
+        self.observations.policy.velocity_commands.scale = (2.0, 2.0, 0.25)
+        self.observations.policy.joint_pos.scale = 1.0
+        self.observations.policy.joint_pos.func = mdp.joint_pos_rel_without_wheel  # 关节位置观测(num_envs, 16)，虽然包含 12个腿部关节 和 4个轮足关节，但轮足关节位置=0
+        self.observations.policy.joint_pos.params["asset_cfg"].joint_names = self.joint_names
+        self.observations.policy.joint_pos.params["wheel_asset_cfg"] = SceneEntityCfg(
+            "robot", joint_names=self.wheel_joint_names
+        )
+        self.observations.policy.joint_vel.scale = 0.05
+        self.observations.policy.joint_vel.params["asset_cfg"].joint_names = self.joint_names
+        self.observations.policy.lidar_scan = None
+
+        self.observations.proprio = None
+
+        self.observations.critic.base_lin_vel.scale = 2.0
+        self.observations.critic.base_ang_vel.scale = 0.25
+        self.observations.critic.velocity_commands.scale = (2.0, 2.0, 0.25)
+        self.observations.critic.joint_pos.scale = 1.0
+        self.observations.critic.joint_pos.func = mdp.joint_pos_rel_without_wheel
+        self.observations.critic.joint_pos.params["asset_cfg"].joint_names = self.joint_names
+        self.observations.critic.joint_pos.params["wheel_asset_cfg"] = SceneEntityCfg(
+            "robot", joint_names=self.wheel_joint_names
+        )
+        self.observations.critic.joint_vel.scale = 0.05
+        self.observations.critic.joint_vel.params["asset_cfg"].joint_names = self.joint_names
+
+        # ------------------------------Actions------------------------------
+        # reduce action scale
+        self.actions.joint_pos.scale = {".*_hip_joint": 0.125, "^(?!.*_hip_joint).*": 0.25}
+        self.actions.joint_pos.clip = {".*": (-100.0, 100.0)}
+        self.actions.joint_pos.joint_names = self.leg_joint_names
+        # 增加 轮足部分的
+        self.actions.joint_vel.scale = 5.0
+        self.actions.joint_vel.clip = {".*": (-100.0, 100.0)}
+        self.actions.joint_vel.joint_names = self.wheel_joint_names
+
+        # ------------------------------Events------------------------------
+        # startup
+        self.events.randomize_rigid_body_material.params["static_friction_range"] = (0.2, 1.2)
+        self.events.randomize_rigid_body_material.params["dynamic_friction_range"] = (0.2, 1.0)
+        self.events.randomize_rigid_body_material.params["restitution_range"] = (0.0, 1.0)
+        self.events.randomize_rigid_body_mass.params["asset_cfg"].body_names = [self.base_link_name]
+        self.events.randomize_rigid_body_mass.params["mass_distribution_params"] = (0.0, 3.0)
+        self.events.randomize_rigid_body_inertia.params["inertia_distribution_params"] = (0.8, 1.2)
+        self.events.randomize_rigid_body_com.params["asset_cfg"].body_names = [self.base_link_name]
+
+        # reset
+        self.events.randomize_apply_external_force_torque.params["asset_cfg"].body_names = [self.base_link_name]
+        self.events.randomize_apply_external_force_torque.params["force_range"] = (-10.0, 10.0)
+        self.events.randomize_apply_external_force_torque.params["torque_range"] = (-10.0, 10.0)
+        self.events.randomize_reset_joints.params["position_range"] = (0.5, 1.5)
+        self.events.randomize_reset_joints.params["velocity_range"] = (0.0, 0.0)
+        self.events.randomize_actuator_gains.params["stiffness_distribution_params"] = (0.8, 1.2)
+        self.events.randomize_actuator_gains.params["damping_distribution_params"] = (0.8, 1.2)
+        self.events.randomize_reset_base.params = {
+            "pose_range": {
+                "x": (-0.5, 0.5),
+                "y": (-0.5, 0.5),
+                "z": (0.0, 0.1),
+                "roll": (-3.14, 3.14),
+                "pitch": (-3.14, 3.14),
+                "yaw": (-3.14, 3.14),
+            },
+            "velocity_range": {
+                "x": (-0.5, 0.5),
+                "y": (-0.5, 0.5),
+                "z": (-0.5, 0.5),
+                "roll": (-0.5, 0.5),
+                "pitch": (-0.5, 0.5),
+                "yaw": (-0.5, 0.5),
+            },
+        }
+
+        # interval
+        self.events.randomize_push_robot.params["velocity_range"] = {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}
+
+        # ------------------------------Rewards------------------------------
+        # General
+        self.rewards.is_terminated.weight = -0.0
+
+        # Root penalties
+        self.rewards.lin_vel_z_l2.weight = -2.0
+        self.rewards.ang_vel_xy_l2.weight = -0.05
+        self.rewards.flat_orientation_l2.weight = -0.0
+        self.rewards.base_height_l2.weight = -0.0
+        self.rewards.base_height_l2.params["target_height"] = 0.40
+        self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
+        self.rewards.body_lin_acc_l2.weight = -0.0
+        self.rewards.body_lin_acc_l2.params["asset_cfg"].body_names = [self.base_link_name]
+
+        # Joint penalties
+        self.rewards.joint_torques_l2.weight = -2.5e-5
+        self.rewards.joint_torques_l2.params["asset_cfg"].joint_names = self.leg_joint_names
+        self.rewards.joint_torques_wheel_l2.weight = -0.0  # 增加 轮足扭矩
+        self.rewards.joint_torques_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+
+        self.rewards.joint_vel_l2.weight = -0.0
+        self.rewards.joint_vel_l2.params["asset_cfg"].joint_names = self.leg_joint_names
+        self.rewards.joint_vel_wheel_l2.weight = -0.0  # 增加 轮足速度
+        self.rewards.joint_vel_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+        self.rewards.joint_acc_l2.weight = -2.5e-7
+        self.rewards.joint_acc_l2.params["asset_cfg"].joint_names = self.leg_joint_names
+        self.rewards.joint_acc_wheel_l2.weight = -2.5e-9  # 增加 轮足加速度
+        self.rewards.joint_acc_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+
+        # 位置偏差 仅应用到 腿部关节
+        self.rewards.joint_pos_deviation.weight = -0.3
+        self.rewards.joint_pos_deviation.params["asset_cfg"].joint_names = self.leg_joint_names
+        self.rewards.stand_still_without_cmd.weight = -2.0
+        self.rewards.stand_still_without_cmd.params["asset_cfg"].joint_names = self.leg_joint_names
+        self.rewards.joint_pos_limits.weight = -5.0
+        self.rewards.joint_pos_limits.params["asset_cfg"].joint_names = self.leg_joint_names
+
+        self.rewards.joint_vel_limits.weight = -0.0  # 关节速度限制 应用到 轮足
+        self.rewards.joint_vel_limits.params["asset_cfg"].joint_names = self.wheel_joint_names
+        self.rewards.wheel_vel_lowCmd.weight = -0.01  # 增加 轮足 在空中或者静立时的关节速度
+        self.rewards.wheel_vel_lowCmd.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.wheel_vel_lowCmd.params["asset_cfg"].joint_names = self.wheel_joint_names
+
+        self.rewards.joint_power.weight = -2e-5
+        self.rewards.joint_power.params["asset_cfg"].joint_names = self.leg_joint_names
+        self.rewards.joint_mirror.weight = -0.05
+        self.rewards.joint_mirror.params["mirror_joints"] = [
+            ["FR_(thigh|calf).*", "RL_(thigh|calf).*"],
+            ["FL_(thigh|calf).*", "RR_(thigh|calf).*"],
+        ]
+
+        # Action penalties
+        self.rewards.action_rate_l2.weight = -0.01
+        self.rewards.action_smoothness.weight = -0.0
+
+        # Contact sensor
+        self.rewards.undesired_contacts.weight = -1.0
+        self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
+        self.rewards.contact_forces.weight = -1.5e-4
+        self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
+
+        # Velocity-tracking rewards
+        self.rewards.track_lin_vel_xy_exp.weight = 3.0
+        self.rewards.track_ang_vel_z_exp.weight = 1.5
+
+        # Others
+        self.rewards.feet_air_time.weight = 0.1
+        self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_air_time.params["threshold"] = 0.5
+        self.rewards.feet_air_time_variance.weight = -1.0
+        self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_gait.weight = 0.2
+        self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
+        self.rewards.feet_contact.weight = -0.0
+        self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_contact_without_cmd.weight = 0.1
+        self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_stumble.weight = -1.0
+        self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_slide.weight = -0.02
+        self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_height.weight = -0.0
+        self.rewards.feet_height.params["target_height"] = 0.10
+        self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_height_body.weight = -0.0
+        self.rewards.feet_height_body.params["target_height"] = -0.20
+        self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_distance_y_exp.weight = 0.0
+        self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = [self.foot_link_name]
+
+        # Upward
+        self.rewards.upward.weight = 0.5
+
+        # If the weight of rewards is 0, set rewards to None
+        if self.__class__.__name__ == "Go2WRoughEnvCfg":
+            self.disable_zero_weight_rewards()
+
+        # ------------------------------Terminations------------------------------
+        # self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name, ".*_hip"]
+        self.terminations.illegal_contact = None
+
+        # ------------------------------Commands------------------------------
+        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
+        self.commands.base_velocity.ranges.heading = (-math.pi, math.pi)
+
+        # ------------------------------Curriculums------------------------------
+        # self.curriculum.lin_vel_cmd_levels = None
+        self.curriculum.lin_vel_cmd_levels.params["vel_range_multiplier"] = (1.0, 1.5)
+
+
+@configclass
+class Go2WRoughPlayEnvCfg(Go2WRoughEnvCfg):
+    def __post_init__(self):
+        # post init of parent
+        super().__post_init__()
+
+        self.episode_length_s = 10.0
+
+        # ------------------------------Sence------------------------------
+        # make a smaller scene for play
+        self.scene.num_envs = 50
+        # spawn the robot randomly in the grid (instead of their terrain levels)
+        self.scene.terrain.max_init_terrain_level = 5
+        # reduce the number of terrains to save memory
+        if self.scene.terrain.terrain_generator is not None:
+            self.scene.terrain.terrain_generator.num_rows = 5
+            self.scene.terrain.terrain_generator.num_cols = 5
+            self.scene.terrain.terrain_generator.curriculum = False
+            self.scene.terrain.terrain_generator.difficulty_range = (0.6, 1.0)
+            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].proportion = 0.2
+            # self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs"].step_height_range = (0.16, 0.20)
+            self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].proportion = 0.2
+            # self.scene.terrain.terrain_generator.sub_terrains["pyramid_stairs_inv"].step_height_range = (0.16, 0.20)
+            self.scene.terrain.terrain_generator.sub_terrains["boxes"].proportion = 0.2
+            self.scene.terrain.terrain_generator.sub_terrains["random_rough"].proportion = 0.2
+            self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope"].proportion = 0.1
+            self.scene.terrain.terrain_generator.sub_terrains["hf_pyramid_slope_inv"].proportion = 0.1
+
+
+        # ------------------------------Observations------------------------------
+        # disable randomization for play
+        self.observations.policy.enable_corruption = False
+        if self.observations.proprio is not None:
+            self.observations.proprio.enable_corruption = False
+
+        # ------------------------------Events------------------------------
+        # remove random pushing event
+        self.events.randomize_apply_external_force_torque = None
+        self.events.randomize_actuator_gains = None
+        self.events.randomize_reset_base.params = {
+            "pose_range": {
+                "x": (-0.5, 0.5),
+                "y": (-0.5, 0.5),
+                "z": (0.0, 0.0),
+                "roll": (-1.57, 3.14),
+                "pitch": (-1.57, 1.57),
+                "yaw": (-3.14, 3.14),
+            },
+            "velocity_range": {
+                "x": (-0.5, 0.5),
+                "y": (-0.5, 0.5),
+                "z": (-0.5, 0.5),
+                "roll": (-0.5, 0.5),
+                "pitch": (-0.5, 0.5),
+                "yaw": (-0.5, 0.5),
+            },
+        }
+        self.events.randomize_push_robot = None
+
+        # ------------------------------Commands------------------------------
+        self.commands.base_velocity.ranges.lin_vel_x = (-0.5, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
+
+        # ------------------------------Curriculums------------------------------
+        self.curriculum.lin_vel_cmd_levels = None

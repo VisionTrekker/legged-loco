@@ -75,8 +75,8 @@ from isaaclab_rl.rsl_rl import (
     export_policy_as_onnx
 )
 
-from leggedloco_tasks.manager_based.locomotion.velocity.config import *
-from leggedloco_tasks.manager_based.locomotion.velocity.utils import RslRlVecEnvHistoryWrapper
+from eilab_tasks.manager_based.locomotion.velocity.config import *
+from eilab_tasks.manager_based.locomotion.velocity.utils import RslRlVecEnvHistoryWrapper
 
 
 def main():

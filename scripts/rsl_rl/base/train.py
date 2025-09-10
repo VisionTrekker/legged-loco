@@ -75,8 +75,8 @@ from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
 
 # from omni.isaac.viplanner.config import H1RoughEnvCfg, H1BaseRoughEnvCfg, H12DoFRoughEnvCfg, H1VisionRoughEnvCfg, G1VisionRoughEnvCfg
 # from omni.isaac.viplanner.config import H1RoughEnvCfg_PLAY, H1BaseRoughEnvCfg_PLAY, H12DoFRoughEnvCfg_PLAY, H1VisionRoughEnvCfg_PLAY, G1VisionRoughEnvCfg_PLAY
-from leggedloco_tasks.manager_based.locomotion.velocity.config import *
-from leggedloco_tasks.manager_based.locomotion.velocity.utils import RslRlVecEnvHistoryWrapper
+from eilab_tasks.manager_based.locomotion.velocity.config import *
+from eilab_tasks.manager_based.locomotion.velocity.utils import RslRlVecEnvHistoryWrapper
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True

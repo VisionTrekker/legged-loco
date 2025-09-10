@@ -55,14 +55,14 @@ from isaaclab_rl.rsl_rl import (
     RslRlVecEnvWrapper,
 )
 
-from leggedloco_tasks.manager_based.locomotion.config import *
+from eilab_tasks.manager_based.locomotion.velocity.config import *
 from isaaclab.devices.keyboard import Se2Keyboard
-from leggedloco_tasks.manager_based.locomotion.utils import RslRlVecEnvHistoryWrapper
+from eilab_tasks.manager_based.locomotion.velocity.utils import RslRlVecEnvHistoryWrapper
 
 import isaaclab.sim as sim_utils
 from isaaclab.markers import VisualizationMarkers, VisualizationMarkersCfg
 
-from utils import quat2eulers
+from ..rsl_rl_utils import quat2eulers
 
 
 def define_markers() -> VisualizationMarkers:
