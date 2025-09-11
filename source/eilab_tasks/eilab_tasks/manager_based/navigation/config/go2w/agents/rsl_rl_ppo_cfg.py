@@ -33,8 +33,8 @@ class Go2WRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
 
 @configclass
 class Go2WFlatPPORunnerCfg(Go2WRoughPPORunnerCfg):
-    def __post__init__(self):
-        super().__pose_init__()
+    def __post_init__(self):
+        super().__post_init__()
 
         self.max_iterations = 2000
         self.experiment_name = "go2w_navigationFlat"

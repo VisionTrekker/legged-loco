@@ -15,25 +15,25 @@ Navigation
 
 # --- Flat ---
 # blind
-# gym.register(
-#     id="EiLab-Isaac-Navigation-Flat-Go2W-v0",
-#     entry_point="isaaclab.envs:ManagerBasedRLEnv",
-#     disable_env_checker=True,
-#     kwargs={
-#         "env_cfg_entry_point": f"{__name__}.navigation_env_cfg:NavigationEnvCfg",# todo
-#         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:Go2WFlatPPORunnerCfg",
-#     },
-# )
-#
-# gym.register(
-#     id="EiLab-Isaac-Navigation-Flat-Go2W-Play-v0",
-#     entry_point="isaaclab.envs:ManagerBasedRLEnv",
-#     disable_env_checker=True,
-#     kwargs={
-#         "env_cfg_entry_point": f"{__name__}.navigation_env_cfg:NavigationEnvCfg_PLAY",# todo
-#         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:Go2WFlatPPORunnerCfg",
-#     },
-# )
+gym.register(
+    id="EiLab-Isaac-Navigation-Flat-Go2W-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.flat_env_cfg:Go2WNavigationFlatEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:Go2WFlatPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="EiLab-Isaac-Navigation-Flat-Go2W-Play-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.flat_env_cfg:Go2WNavigationFlatPlayEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:Go2WFlatPPORunnerCfg",
+    },
+)
 
 
 # --- Rough ---
@@ -43,7 +43,7 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.rough_env_cfg:Go2WNavigationRoughEnvCfg",# todo
+        "env_cfg_entry_point": f"{__name__}.rough_env_cfg:Go2WNavigationRoughEnvCfg",
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:Go2WRoughPPORunnerCfg",
     },
 )
@@ -53,7 +53,7 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.navigation_env_cfg:Go2WNavigationPlayEnvCfg", # todo
+        "env_cfg_entry_point": f"{__name__}.rough_env_cfg:Go2WNavigationRoughPlayEnvCfg",
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:Go2WRoughPPORunnerCfg",
     },
 )

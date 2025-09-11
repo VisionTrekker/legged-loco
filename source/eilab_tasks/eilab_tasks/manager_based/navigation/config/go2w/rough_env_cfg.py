@@ -76,7 +76,7 @@ class Go2WNavigationRoughEnvCfg(NavigationRoughEnvCfg):
         self.terminations.illegal_contact.params["sensor_cfg"].body_names = [LOW_LEVEL_ENV_CFG.base_link_name, ".*_hip"]
 
 
-class Go2WNavigationPlayEnvCfg(Go2WNavigationRoughEnvCfg):
+class Go2WNavigationRoughPlayEnvCfg(Go2WNavigationRoughEnvCfg):
     def __post_init__(self) -> None:
         # post init of parent
         super().__post_init__()
