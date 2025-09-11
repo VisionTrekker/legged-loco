@@ -79,24 +79,26 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     python scripts/tools/list_envs.py
     ```
 
-    | **Environment ID**                                 | **Description**                                                                                                     |
-    |----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-    | EiLab-Isaac-Velocity-Flat-AlienGo-v0               | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking)                             |
-    | EiLab-Isaac-Velocity-Flat-AlienGo-Play-v0          |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Flat-Lidar-AlienGo-v0         | Track a velocity command on flat terrain with the Unitree AlienGo robot enhanced by Mid-360 LiDAR                   |
-    | EiLab-Isaac-Velocity-Flat-Lidar-AlienGo-Play-v0    |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Rough-AlienGo-v0              | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking)           |
-    | EiLab-Isaac-Velocity-Rough-AlienGo-Play-v0         |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Rough-Lidar-AlienGo-v0        | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot enhanced by Mid-360 LiDAR |
-    | EiLab-Isaac-Velocity-Rough-Lidar-AlienGo-Play-v0   |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Flat-Recover-AlienGo-v0       | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking + recover)                   |
-    | EiLab-Isaac-Velocity-Flat-Recover-AlienGo-Play-v0  |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Rough-Recover-AlienGo-v0      | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking + recover) |
-    | EiLab-Isaac-Velocity-Rough-Recover-AlienGo-Play-v0 |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Flat-Recover-Go2W-v0          | Track a velocity command on flat terrain with the Unitree Go2W robot (blind walking + recover)                      |
-    | EiLab-Isaac-Velocity-Flat-Recover-Go2W-Play-v0     |     <br/>                                                                                                           |
-    | EiLab-Isaac-Velocity-Rough-Recover-Go2W-v0         | Track a velocity command on rough terrain (slope + stairs) with the Unitree Go2W robot (blind walking + recover)    |
-    | EiLab-Isaac-Velocity-Rough-Recover-Go2W-Play-v0    |                                                                                                                     |
+    | **Environment ID**                                   | **Description**                                                                                                     |
+    |------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+    | EiLab-Isaac-Velocity-Flat-AlienGo-v0                 | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking)                             |
+    | EiLab-Isaac-Velocity-Flat-AlienGo-Play-v0            |                                                                                                                     |
+    | EiLab-Isaac-Velocity-Flat-Lidar-AlienGo-v0           | Track a velocity command on flat terrain with the Unitree AlienGo robot enhanced by Mid-360 LiDAR                   |
+    | EiLab-Isaac-Velocity-Flat-Lidar-AlienGo-Play-v0      |                                                                                                                     |
+    | EiLab-Isaac-Velocity-Rough-AlienGo-v0                | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking)           |
+    | EiLab-Isaac-Velocity-Rough-AlienGo-Play-v0           |                                                                                                                     |
+    | EiLab-Isaac-Velocity-Rough-Lidar-AlienGo-v0          | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot enhanced by Mid-360 LiDAR |
+    | EiLab-Isaac-Velocity-Rough-Lidar-AlienGo-Play-v0     |                                                                                                                     |
+    | EiLab-Isaac-Velocity-Flat-Recover-AlienGo-v0         | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking + recover)                   |
+    | EiLab-Isaac-Velocity-Flat-Recover-AlienGo-Play-v0    |                                                                                                                     |
+    | EiLab-Isaac-Velocity-Rough-Recover-AlienGo-v0        | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking + recover) |
+    | EiLab-Isaac-Velocity-Rough-Recover-AlienGo-Play-v0   |                                                                                                                     |
+    | EiLab-Isaac-Velocity-Flat-Recover-Go2W-v0            | Track a velocity command on flat terrain with the Unitree Go2W robot (blind walking + recover)                      |
+    | EiLab-Isaac-Velocity-Flat-Recover-Go2W-Play-v0       | <br/>                                                                                                               |
+    | EiLab-Isaac-Velocity-Rough-Recover-Go2W-v0           | Track a velocity command on rough terrain (slope + stairs) with the Unitree Go2W robot (blind walking + recover)    |
+    | EiLab-Isaac-Velocity-Rough-Recover-Go2W-Play-v0      |                                                                                                                     |
+    | EiLab-Isaac-Navigation-Rough-Go2W-v0                 | Navigation to a goal position & orientation on rough terrain (slope + stairs) with the Unitree Go2W robot (blind)   |
+    | EiLab-Isaac-Navigation-Rough-Go2W-Play-v0            |                                                                                                                     |
 
 
 ### Train
