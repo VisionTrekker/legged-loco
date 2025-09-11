@@ -53,7 +53,7 @@ class AlienGoRoughLidarEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.observations.proprio.joint_pos.params["asset_cfg"].joint_names = self.joint_names
         self.observations.proprio.joint_vel.scale = 0.05
         self.observations.proprio.joint_vel.params["asset_cfg"].joint_names = self.joint_names
-        self.observations.proprio.lidar_scan = None
+        # proprio dont have lidar scanner
 
         self.observations.critic.base_lin_vel.scale = 2.0
         self.observations.critic.base_ang_vel.scale = 0.25

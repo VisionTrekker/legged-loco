@@ -1,7 +1,8 @@
-# Copyright (c) 2022-2024, The Isaac Lab Project Developers.
+# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
+
 import math
 from dataclasses import MISSING
 
@@ -241,13 +242,6 @@ class ObservationsCfg:
         actions = ObsTerm(
             func=mdp.last_action,
             clip=(-100.0, 100.0),
-            scale=1.0,
-        )
-        lidar_scan = ObsTerm(
-            func=mdp.height_map_lidar,
-            params={"sensor_cfg": SceneEntityCfg("lidar_scanner"), "offset": 0.0},
-            noise=Unoise(n_min=-0.1, n_max=0.1),
-            clip=(-10.0, 10.0),
             scale=1.0,
         )
 
@@ -726,13 +720,13 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
     # Scene settings
     scene: VelocitySceneCfg = VelocitySceneCfg(num_envs=4096, env_spacing=2.5)
     # Basic settings
-    observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
-    commands: CommandsCfg = CommandsCfg()
+    observations: ObservationsCfg = ObservationsCfg()
+    events: EventCfg = EventCfg()
     # MDP settings
+    commands: CommandsCfg = CommandsCfg()
     rewards: RewardsCfg = RewardsCfg()
     terminations: TerminationsCfg = TerminationsCfg()
-    events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
 
     def __post_init__(self):
@@ -751,6 +745,8 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
         # we tick all the sensors based on the smallest update period (physics update period)
         if self.scene.height_scanner is not None:
             self.scene.height_scanner.update_period = self.sim.dt * self.decimation
+        if self.scene.height_scanner_base is not None:
+            self.scene.height_scanner_base.update_period = self.sim.dt * self.decimation
         if self.scene.lidar_scanner is not None:
             self.scene.lidar_scanner.update_period = self.sim.dt * self.decimation
         if self.scene.contact_forces is not None:
