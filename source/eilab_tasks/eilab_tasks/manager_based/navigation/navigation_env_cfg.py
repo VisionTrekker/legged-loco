@@ -40,7 +40,7 @@ class CommandsCfg:
     base_pose = mdp.UniformPose2dCommandCfg(
         asset_name="robot",
         simple_heading=False,
-        resampling_time_range=(10.0, 10.0),
+        resampling_time_range=(8.0, 8.0),
         debug_vis=True,
         ranges=mdp.UniformPose2dCommandCfg.Ranges(
             pos_x=(-5.0, 5.0), pos_y=(-5.0, 5.0), heading=(-math.pi, math.pi)
@@ -59,7 +59,7 @@ class ActionsCfg:
         low_level_act_pos=LOW_LEVEL_ENV_CFG.actions.joint_pos,
         low_level_obs_policy=LOW_LEVEL_ENV_CFG.observations.policy,
         low_level_obs_proprio=LOW_LEVEL_ENV_CFG.observations.proprio if LOW_LEVEL_ENV_CFG.observations.proprio is not None else None,
-        low_level_obs_his_len=5,
+        low_level_obs_his_len=5,  # 暂时无法从 env_cfg 中获取，其在 agent_cfg 中
     )
 
 
@@ -189,7 +189,7 @@ class NavigationRoughEnvCfg(ManagerBasedRLEnvCfg):
 
         # general settings
         self.decimation = LOW_LEVEL_ENV_CFG.decimation * 10  # = 40
-        self.episode_length_s = self.commands.base_pose.resampling_time_range[1]  # = 10
+        self.episode_length_s = self.commands.base_pose.resampling_time_range[1]  # = 8
         # simulation settings (sim : isaaclab/sim/simlation_cfg.py/SimulationCfg())
         self.sim.dt = LOW_LEVEL_ENV_CFG.sim.dt  # = 0.005
         self.sim.render_interval = LOW_LEVEL_ENV_CFG.decimation  # = 4

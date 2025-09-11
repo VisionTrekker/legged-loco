@@ -79,30 +79,33 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     python scripts/tools/list_envs.py
     ```
 
-    | **Environment ID**                                   | **Description**                                                                                                     |
-    |------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-    | EiLab-Isaac-Velocity-Flat-AlienGo-v0                 | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking)                             |
-    | EiLab-Isaac-Velocity-Flat-AlienGo-Play-v0            |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Flat-Lidar-AlienGo-v0           | Track a velocity command on flat terrain with the Unitree AlienGo robot enhanced by Mid-360 LiDAR                   |
-    | EiLab-Isaac-Velocity-Flat-Lidar-AlienGo-Play-v0      |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Rough-AlienGo-v0                | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking)           |
-    | EiLab-Isaac-Velocity-Rough-AlienGo-Play-v0           |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Rough-Lidar-AlienGo-v0          | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot enhanced by Mid-360 LiDAR |
-    | EiLab-Isaac-Velocity-Rough-Lidar-AlienGo-Play-v0     |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Flat-Recover-AlienGo-v0         | Track a velocity command on flat terrain with the Unitree AlienGo robot (blind walking + recover)                   |
-    | EiLab-Isaac-Velocity-Flat-Recover-AlienGo-Play-v0    |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Rough-Recover-AlienGo-v0        | Track a velocity command on rough terrain (slope + stairs) with the Unitree AlienGo robot (blind walking + recover) |
-    | EiLab-Isaac-Velocity-Rough-Recover-AlienGo-Play-v0   |                                                                                                                     |
-    | EiLab-Isaac-Velocity-Flat-Recover-Go2W-v0            | Track a velocity command on flat terrain with the Unitree Go2W robot (blind walking + recover)                      |
-    | EiLab-Isaac-Velocity-Flat-Recover-Go2W-Play-v0       | <br/>                                                                                                               |
-    | EiLab-Isaac-Velocity-Rough-Recover-Go2W-v0           | Track a velocity command on rough terrain (slope + stairs) with the Unitree Go2W robot (blind walking + recover)    |
-    | EiLab-Isaac-Velocity-Rough-Recover-Go2W-Play-v0      |                                                                                                                     |
-    | EiLab-Isaac-Navigation-Rough-Go2W-v0                 | Navigation to a goal position & orientation on rough terrain (slope + stairs) with the Unitree Go2W robot (blind)   |
-    | EiLab-Isaac-Navigation-Rough-Go2W-Play-v0            |                                                                                                                     |
+    | **Environment ID**                                  | **Description**                                                                                                        |
+    |-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+    | EiLab-Isaac-Velocity-Flat-AlienGo-v0                | Track a velocity command on **Flat** terrain with the Unitree AlienGo robot (blind walking)                            |
+    | EiLab-Isaac-Velocity-Flat-AlienGo-Play-v0           |                                                                                                                        |
+    | EiLab-Isaac-Velocity-Flat-Lidar-AlienGo-v0          | Track a velocity command on **Flat** terrain with the Unitree AlienGo robot enhanced by **Mid-360 LiDAR**                  |
+    | EiLab-Isaac-Velocity-Flat-Lidar-AlienGo-Play-v0     |                                                                                                                        |
+    | EiLab-Isaac-Velocity-Rough-AlienGo-v0               | Track a velocity command on **Rough** terrain (slope + stairs) with the Unitree AlienGo robot (blind walking)          |
+    | EiLab-Isaac-Velocity-Rough-AlienGo-Play-v0          |                                                                                                                        |
+    | EiLab-Isaac-Velocity-Rough-Lidar-AlienGo-v0         | Track a velocity command on **Rough** terrain  (slope + stairs) with the Unitree AlienGo robot enhanced by **Mid-360 LiDAR**    |
+    | EiLab-Isaac-Velocity-Rough-Lidar-AlienGo-Play-v0    |                                                                                                                        |
+    | EiLab-Isaac-Velocity-Flat-Recover-AlienGo-v0        | Track a velocity command on **Flat** terrain with the Unitree AlienGo robot (blind walking + recover)                  |
+    | EiLab-Isaac-Velocity-Flat-Recover-AlienGo-Play-v0   |                                                                                                                        |
+    | EiLab-Isaac-Velocity-Rough-Recover-AlienGo-v0       | Track a velocity command on **Rough** terrain (slope + stairs) with the Unitree AlienGo robot (blind walking + recover) |
+    | EiLab-Isaac-Velocity-Rough-Recover-AlienGo-Play-v0  |                                                                                                                        |
+    | EiLab-Isaac-Velocity-Flat-Recover-Go2W-v0           | Track a velocity command on **Flat** terrain with the Unitree Go2W robot (blind walking + recover)                     |
+    | EiLab-Isaac-Velocity-Flat-Recover-Go2W-Play-v0      | <br/>                                                                                                                  |
+    | EiLab-Isaac-Velocity-Rough-Recover-Go2W-v0          | Track a velocity command on **Rough** terrain  (slope + stairs) with the Unitree Go2W robot (blind walking + recover)       |
+    | EiLab-Isaac-Velocity-Rough-Recover-Go2W-Play-v0     |                                                                                                                        |
+    | EiLab-Isaac-Navigation-Flat-Go2W-v0                 | **Navigation** to a goal position & orientation on **Flat** terrain (slope + stairs) with the Unitree Go2W robot (blind)   |
+    | EiLab-Isaac-Navigation-Flat-Go2W-Play-v0            |                                                                                                                        |
+    | EiLab-Isaac-Navigation-Rough-Go2W-v0                | **Navigation** to a goal position & orientation on **Rough** terrain  (slope + stairs) with the Unitree Go2W robot (blind)      |
+    | EiLab-Isaac-Navigation-Rough-Go2W-Play-v0           |                                                                                                                        |
 
 
 ### Train
-#### Flat terrain
+#### 1. Locomotion
+##### Flat terrain
 * AlienGo
     ```shell
     # Blind
@@ -118,8 +121,8 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     python scripts/rsl_rl/base/train.py --task EiLab-Isaac-Velocity-Flat-Recover-Go2W-v0 --history_len 5 --run_name blind --max_iterations 2000 --save_interval 200 --headless
     ```
 
-#### Rough (stairs) terrain (two stages)
-* AlienGo
+##### Rough (stairs) terrain
+* AlienGo (two stages)
     ```shell
     # Blind + Recover
     python scripts/rsl_rl/base/train.py --task EiLab-Isaac-Velocity-Rough-Recover-AlienGo-v0 --history_len 5 --run_name blind_loadflat --resume --load_experiment aliengo_flatRecover --load_run "2025-07-01_15-36-26_blind_load" --max_iterations 2500 --save_interval 200 --headless
@@ -128,22 +131,33 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
     ```
 
 * Go2W
-    ```shell
-    # Blind + Recover
-    python scripts/rsl_rl/base/train.py --task EiLab-Isaac-Velocity-Rough-Recover-Go2W-v0 --history_len 5 --run_name blind_loadflat --resume --load_experiment go2w_flatRecover --load_run "2025-08-19_12-27-43_blind" --max_iterations 2500 --save_interval 200 --headless
-    ```
-   (scratch testing)
-    ```shell
-    # Blind + Recover
-    python scripts/rsl_rl/base/train.py --task EiLab-Isaac-Velocity-Rough-Recover-Go2W-v0 --history_len 5 --run_name blind --max_iterations 4000 --save_interval 200 --headless
-    ```
+  - two stages
+      ```shell
+      # Blind + Recover
+      python scripts/rsl_rl/base/train.py --task EiLab-Isaac-Velocity-Rough-Recover-Go2W-v0 --history_len 5 --run_name blind_loadflat --resume --load_experiment go2w_flatRecover --load_run "2025-08-19_12-27-43_blind" --max_iterations 2500 --save_interval 200 --headless
+      ```
+  - scratch
+      ```shell
+      # Blind + Recover
+      python scripts/rsl_rl/base/train.py --task EiLab-Isaac-Velocity-Rough-Recover-Go2W-v0 --history_len 5 --run_name blind --max_iterations 4000 --save_interval 200 --headless
+      ```
+
+#### 2. Navigation
+##### Flat terrain
+   ```shell
+   python scripts/rsl_rl/base/train.py --task EiLab-Isaac-Navigation-Flat-Go2W-v0 --history_len 5 --run_name blind --max_iterations 1000 --save_interval 100 --headles
+   ```
+
+##### Rough terrain
+   ```shell
+   python scripts/rsl_rl/base/train.py --task EiLab-Isaac-Navigation-Rough-Go2W-v0 --history_len 5 --run_name blind --max_iterations 1000 --save_interval 100 --headles
+   ```
 
 
 ### Test
-* 
-    ```shell
-    python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 5 --load_run RUN_NAME
-    ```
+   ```shell
+   python scripts/rsl_rl/base/play.py --task TASK_ID-Play --history_len 5 --load_run RUN_NAME
+   ```
   for loading specified checkpoint, add `--checkpoint model_xxx.pt`.
 
   for using keyboard control robot when playing, add `--keyboard`, up, down, left, right arrows for translation, Z and X for rotation.

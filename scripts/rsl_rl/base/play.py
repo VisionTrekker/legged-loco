@@ -27,7 +27,8 @@ parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
 
 parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
-parser.add_argument("--video_length", type=int, default=2000, help="Length of the recorded video (in steps).")
+parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
+parser.add_argument("--video_fps", type=int, default=10, help="Frame rate of the recorded video.")
 parser.add_argument("--use_cnn", action="store_true", default=None, help="Name of the run folder to resume from.")
 parser.add_argument("--arm_fixed", action="store_true", default=False, help="Fix the robot's arms.")
 parser.add_argument("--use_rnn", action="store_true", default=False, help="Use RNN in the actor-critic model.")
@@ -134,6 +135,7 @@ def main():
             "video_folder": os.path.join(log_dir, "videos", "play"),
             "step_trigger": lambda step: step == 0,
             "video_length": args_cli.video_length,
+            "fps": args_cli.video_fps,
             "disable_logger": True,
         }
         print("[INFO] Recording videos during training.")
@@ -246,7 +248,7 @@ def main():
         if args_cli.real_time and sleep_time > 0:
             time.sleep(sleep_time)
 
-    writer = imageio.get_writer(os.path.join(log_dir, f"{args_cli.load_run}.mp4"), fps=50)
+    writer = imageio.get_writer(os.path.join(log_dir, f"{args_cli.load_run}.mp4"), fps=args_cli.video_fps)
     for frame in frames:
         writer.append_data(frame)
     writer.close()

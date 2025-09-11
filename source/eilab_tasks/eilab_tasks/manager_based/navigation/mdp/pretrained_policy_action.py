@@ -81,6 +81,7 @@ class PreTrainedPolicyAction(ActionTerm):
             cfg.low_level_obs_proprio.actions.params = dict()
             cfg.low_level_obs_proprio.velocity_commands.func = lambda dummy_env: self._raw_actions
             cfg.low_level_obs_proprio.velocity_commands.params = dict()
+
             self._low_level_obs_proprio_manager = ObservationManager({"lowLevel_proprio": cfg.low_level_obs_proprio}, env)
             self._low_level_obs_proprio_dim = self._low_level_obs_proprio_manager.compute_group("lowLevel_proprio").shape[1]
             print(f"[INFO] _low_level_obs_proprio_manager: {self._low_level_obs_proprio_manager}")
