@@ -199,8 +199,8 @@
       <geometry>
         <mesh filename="package://../meshes/left_wheel.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="黑色塑料_003-effect">
+        <color rgba="0.023455 0.023455 0.023455 1" />
       </material>
     </visual>
     <collision>
@@ -361,8 +361,8 @@
       <geometry>
         <mesh filename="package://../meshes/right_wheel.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="黑色塑料_003-effect">
+        <color rgba="0.023455 0.023455 0.023455 1" />
       </material>
     </visual>
     <collision>
@@ -524,8 +524,8 @@
       <geometry>
         <mesh filename="package://../meshes/left_wheel.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="黑色塑料_003-effect">
+        <color rgba="0.023455 0.023455 0.023455 1" />
       </material>
     </visual>
     <collision>
@@ -686,8 +686,8 @@
       <geometry>
         <mesh filename="package://../meshes/right_wheel.dae" />
       </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
+      <material name="黑色塑料_003-effect">
+        <color rgba="0.023455 0.023455 0.023455 1" />
       </material>
     </visual>
     <collision>
